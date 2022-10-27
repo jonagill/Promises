@@ -1,0 +1,17 @@
+{
+    "name": "Promises.Tests",
+    "references": [
+        "GUID:2a1456357e964aa4a9d946a896206537"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
