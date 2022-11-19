@@ -680,7 +680,6 @@ namespace Promises
             return newPromise;
         }
         
-        
         public IPromise<U> Transform<U>(Func<T, U> transformResult)
         {
             var newPromise = new Promise<U>();

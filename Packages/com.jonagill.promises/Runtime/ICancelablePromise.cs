@@ -13,35 +13,76 @@ namespace Promises
     public interface IReadOnlyCancelablePromise : IPromise
     {
         bool IsCanceled { get; }
+        CancellationToken CancellationToken { get; }
 
-        ICancelablePromise Canceled(Action onCancel);
+        IReadOnlyCancelablePromise Canceled(Action onCancel);
+        new IReadOnlyCancelablePromise Then(Action onComplete);
+        new IReadOnlyCancelablePromise Catch(Action<Exception> onThrow);
+        new IReadOnlyCancelablePromise Finally(Action onFinish);
         
-        new ICancelablePromise Then(Action onComplete);
-        new ICancelablePromise Catch(Action<Exception> onThrow);
-        new ICancelablePromise Finally(Action onFinish);
-        
-        ICancelablePromise ContinueWith(
+        IReadOnlyCancelablePromise ContinueWith(
             Func<ICancelablePromise> transformResult, 
             Func<ICancelablePromise> transformCanceled = null,
             Func<Exception, ICancelablePromise> transformException = null,
             CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        ICancelablePromise<T> ContinueWith<T>(
+        IReadOnlyCancelablePromise<T> ContinueWith<T>(
             Func<ICancelablePromise<T>> transformResult,
-            Func<ICancelablePromise> transformCanceled = null,
+            Func<ICancelablePromise<T>> transformCanceled = null,
             Func<Exception, ICancelablePromise<T>> transformException = null,
             CancellationChainingType chaining = CancellationChainingType.CancelAll);
         
-        new ICancelablePromise<T> Transform<T>(Func<T> transformResult);
-        new ICancelablePromise TransformException(Func<Exception, Exception> transformResult);
+        new IReadOnlyCancelablePromise<T> Transform<T>(Func<T> transformResult);
+        new IReadOnlyCancelablePromise TransformException(Func<Exception, Exception> transformException);
     }
     
     public interface ICancelablePromise : IReadOnlyCancelablePromise
     {
-        CancellationToken CancellationToken { get; }
+        bool CanBeCanceled { get; }
         void Cancel();
+        
+        new ICancelablePromise Canceled(Action onCancel);
+        new ICancelablePromise Then(Action onComplete);
+        new ICancelablePromise Catch(Action<Exception> onThrow);
+        new ICancelablePromise Finally(Action onFinish);
+        
+        new ICancelablePromise ContinueWith(
+            Func<ICancelablePromise> transformResult, 
+            Func<ICancelablePromise> transformCanceled = null,
+            Func<Exception, ICancelablePromise> transformException = null,
+            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+        new ICancelablePromise<T> ContinueWith<T>(
+            Func<ICancelablePromise<T>> transformResult,
+            Func<ICancelablePromise<T>> transformCanceled = null,
+            Func<Exception, ICancelablePromise<T>> transformException = null,
+            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+        
+        new ICancelablePromise<T> Transform<T>(Func<T> transformResult);
+        new ICancelablePromise TransformException(Func<Exception, Exception> transformException);
     }
     
     public interface IReadOnlyCancelablePromise<T> : IPromise<T>, IReadOnlyCancelablePromise
+    {
+        new IReadOnlyCancelablePromise<T> Canceled(Action onCancel);
+        new IReadOnlyCancelablePromise Then(Action<T> onComplete);
+        new IReadOnlyCancelablePromise<T> Then(Action onComplete);
+        new IReadOnlyCancelablePromise<T> Catch(Action<Exception> onThrow);
+        new IReadOnlyCancelablePromise<T> Finally(Action onFinish);
+        
+        IReadOnlyCancelablePromise<U> ContinueWith<U>(
+            Func<T, ICancelablePromise<U>> transformResult,
+            Func<ICancelablePromise<U>> transformCanceled,
+            Func<Exception, ICancelablePromise<U>> transformException = null,
+            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+        IReadOnlyCancelablePromise ContinueWith(
+            Func<T, ICancelablePromise> transformResult,
+            Func<ICancelablePromise> transformCanceled,
+            Func<Exception, ICancelablePromise> transformException = null,
+            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+        new IReadOnlyCancelablePromise<U> Transform<U>(Func<T, U> transformResult);
+        new IReadOnlyCancelablePromise<T> TransformException(Func<Exception, Exception> transformException);
+    }
+
+    public interface ICancelablePromise<T> : IPromise<T>, IReadOnlyCancelablePromise<T>, ICancelablePromise
     {
         new ICancelablePromise<T> Canceled(Action onCancel);
         
@@ -50,20 +91,18 @@ namespace Promises
         new ICancelablePromise<T> Catch(Action<Exception> onThrow);
         new ICancelablePromise<T> Finally(Action onFinish);
         
-        ICancelablePromise<U> ContinueWith<U>(
+        new ICancelablePromise<U> ContinueWith<U>(
             Func<T, ICancelablePromise<U>> transformResult,
-            Func<ICancelablePromise> transformCanceled,
+            Func<ICancelablePromise<U>> transformCanceled,
             Func<Exception, ICancelablePromise<U>> transformException = null,
             CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        ICancelablePromise ContinueWith(
+        new ICancelablePromise ContinueWith(
             Func<T, ICancelablePromise> transformResult,
             Func<ICancelablePromise> transformCanceled,
             Func<Exception, ICancelablePromise> transformException = null,
             CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        ICancelablePromise<U> Transform<U>(Func<T, U> transformResult);
-        ICancelablePromise<T> TransformException(Func<Exception, Exception> transformException);
+        new ICancelablePromise<U> Transform<U>(Func<T, U> transformResult);
+        new ICancelablePromise<T> TransformException(Func<Exception, Exception> transformException);
     }
-
-    public interface ICancelablePromise<T> : IPromise<T>, IReadOnlyCancelablePromise<T>, ICancelablePromise { }
 }
 
