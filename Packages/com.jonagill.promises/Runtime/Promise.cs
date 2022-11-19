@@ -61,7 +61,7 @@ namespace Promises
 
         #region IPromise API
 
-        public bool IsPending { get; private set; } = true;
+        public bool IsPending { get; protected set; } = true;
         public bool HasSucceeded => !IsPending && _exception == null;
         public bool HasException => !IsPending && _exception != null;
 
@@ -143,19 +143,8 @@ namespace Promises
                     thrownException = e;
                 }
             }
-
-            foreach (var callback in _finallyCallbacks)
-            {
-                try
-                {
-                    callback();
-                }
-                catch (Exception e)
-                {
-                    thrownException = e;
-                }
-            }
-
+            
+            ExecuteFinallyCallbacks(ref thrownException);
             ClearCallbacks();
 
             if (thrownException != null)
@@ -190,19 +179,8 @@ namespace Promises
                     thrownException = e;
                 }
             }
-
-            foreach (var callback in _finallyCallbacks)
-            {
-                try
-                {
-                    callback();
-                }
-                catch (Exception e)
-                {
-                    thrownException = e;
-                }
-            }
-
+            
+            ExecuteFinallyCallbacks(ref thrownException);
             ClearCallbacks();
 
             if (thrownException != null)
@@ -293,10 +271,10 @@ namespace Promises
             return newPromise;
         }
 
-        public IPromise TransformException(Func<Exception, Exception> transformResult)
+        public IPromise TransformException(Func<Exception, Exception> transformException)
         {
             var newPromise = new Promise();
-            Catch(e => newPromise.Throw(transformResult(e)));
+            Catch(e => newPromise.Throw(transformException(e)));
             Then(() => newPromise.Complete());
             return newPromise;
         }
@@ -318,6 +296,21 @@ namespace Promises
         #endregion
         
         #region Internal Helpers
+
+        protected void ExecuteFinallyCallbacks(ref Exception thrownException)
+        {
+            foreach (var callback in _finallyCallbacks)
+            {
+                try
+                {
+                    callback();
+                }
+                catch (Exception e)
+                {
+                    thrownException = e;
+                }
+            }
+        }
         
         protected virtual void ClearCallbacks()
         {
@@ -372,7 +365,7 @@ namespace Promises
         
         #region Promise API
 
-        public bool IsPending { get; private set; } = true;
+        public bool IsPending { get; protected set; } = true;
         public bool HasSucceeded => !IsPending && _exception == null;
         public bool HasException => !IsPending && _exception != null;
 
@@ -490,18 +483,7 @@ namespace Promises
                 }
             }
 
-            foreach (var callback in _finallyCallbacks)
-            {
-                try
-                {
-                    callback();
-                }
-                catch (Exception e)
-                {
-                    thrownException = e;
-                }
-            }
-            
+            ExecuteFinallyCallbacks(ref thrownException);
             ClearCallbacks();
 
             if (thrownException != null)
@@ -536,19 +518,8 @@ namespace Promises
                     thrownException = e;
                 }
             }
-
-            foreach (var callback in _finallyCallbacks)
-            {
-                try
-                {
-                    callback();
-                }
-                catch (Exception e)
-                {
-                    thrownException = e;
-                }
-            }
             
+            ExecuteFinallyCallbacks(ref thrownException);
             ClearCallbacks();
 
             if (thrownException != null)
@@ -746,6 +717,21 @@ namespace Promises
         void IEnumerator.Reset() { }
         
         #endregion
+
+        protected void ExecuteFinallyCallbacks(ref Exception thrownException)
+        {
+            foreach (var callback in _finallyCallbacks)
+            {
+                try
+                {
+                    callback();
+                }
+                catch (Exception e)
+                {
+                    thrownException = e;
+                }
+            }
+        }
         
         protected virtual void ClearCallbacks()
         {
@@ -756,6 +742,5 @@ namespace Promises
             _catchCallbacks.Clear();
             _finallyCallbacks.Clear();
         }
-
     }
 }

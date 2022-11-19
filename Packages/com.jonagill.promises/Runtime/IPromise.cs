@@ -17,7 +17,7 @@ namespace Promises
         IPromise<T> ContinueWith<T>(Func<IPromise<T>> transformResult, Func<Exception, IPromise<T>> transformException = null);
         
         IPromise<T> Transform<T>(Func<T> transformResult);
-        IPromise TransformException(Func<Exception, Exception> transformResult);
+        IPromise TransformException(Func<Exception, Exception> transformException);
     }
 
     public interface IPromise<T> : IPromise
