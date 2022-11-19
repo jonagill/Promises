@@ -83,6 +83,38 @@ namespace Promises
 
         public static IPromise All(params IPromise[] promises) => new AllPromise(promises);
         
+        public static IPromise Any(
+            IPromise a, 
+            IPromise b) => new AnyPromise(a, b);
+        
+        public static IPromise Any(
+            IPromise a, 
+            IPromise b,
+            IPromise c) => new AnyPromise(a, b, c);
+        
+        public static IPromise Any(
+            IPromise a, 
+            IPromise b,
+            IPromise c,
+            IPromise d) => new AnyPromise(a, b, c, d);
+        
+        public static IPromise Any(
+            IPromise a, 
+            IPromise b,
+            IPromise c,
+            IPromise d,
+            IPromise e) => new AnyPromise(a, b, c, d, e);
+        
+        public static IPromise Any(
+            IPromise a, 
+            IPromise b,
+            IPromise c,
+            IPromise d,
+            IPromise e,
+            IPromise f) => new AnyPromise(a, b, c, d, e, f);
+
+        public static IPromise Any(params IPromise[] promises) => new AnyPromise(promises);
+        
         #endregion
 
         private readonly List<Action> _thenCallbacks = new List<Action>(1);
