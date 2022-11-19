@@ -51,6 +51,38 @@ namespace Promises
             return promise;
         }
 
+        public static IPromise All(
+            IPromise a, 
+            IPromise b) => new AllPromise(a, b);
+        
+        public static IPromise All(
+            IPromise a, 
+            IPromise b,
+            IPromise c) => new AllPromise(a, b, c);
+        
+        public static IPromise All(
+            IPromise a, 
+            IPromise b,
+            IPromise c,
+            IPromise d) => new AllPromise(a, b, c, d);
+        
+        public static IPromise All(
+            IPromise a, 
+            IPromise b,
+            IPromise c,
+            IPromise d,
+            IPromise e) => new AllPromise(a, b, c, d, e);
+        
+        public static IPromise All(
+            IPromise a, 
+            IPromise b,
+            IPromise c,
+            IPromise d,
+            IPromise e,
+            IPromise f) => new AllPromise(a, b, c, d, e, f);
+
+        public static IPromise All(params IPromise[] promises) => new AllPromise(promises);
+        
         #endregion
 
         private readonly List<Action> _thenCallbacks = new List<Action>(1);
