@@ -90,8 +90,11 @@ namespace Promises
                                 f.Then(Complete))))));
         }
         
-        public AllPromise(params IPromise[] promises)
+        public AllPromise(params IPromise[] promises) : this((ICollection<IPromise>) promises) {}
+
+        public AllPromise(ICollection<IPromise> promises)
         {
+            var count = promises.Count;
             var successes = 0;
             foreach (var promise in promises)
             {
@@ -99,7 +102,7 @@ namespace Promises
                 promise.Then(() =>
                 {
                     successes++;
-                    if (successes == promises.Length)
+                    if (successes == count)
                     {
                         Complete();
                     }

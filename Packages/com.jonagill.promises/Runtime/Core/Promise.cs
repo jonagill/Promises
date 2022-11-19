@@ -81,6 +81,7 @@ namespace Promises
             IPromise e,
             IPromise f) => new AllPromise(a, b, c, d, e, f);
 
+        public static IPromise All(ICollection<IPromise> promises) => new AllPromise(promises);
         public static IPromise All(params IPromise[] promises) => new AllPromise(promises);
         
         public static IPromise Any(
@@ -113,7 +114,41 @@ namespace Promises
             IPromise e,
             IPromise f) => new AnyPromise(a, b, c, d, e, f);
 
+        public static IPromise Any(ICollection<IPromise> promises) => new AnyPromise(promises);
         public static IPromise Any(params IPromise[] promises) => new AnyPromise(promises);
+        
+        public static IPromise<(T,U)> Combine<T,U>(
+            IPromise<T> a, 
+            IPromise<U> b) => new CombinePromise<T,U>(a, b);
+        
+        public static IPromise<(T,U,V)> Combine<T,U,V>(
+            IPromise<T> a, 
+            IPromise<U> b,
+            IPromise<V> c) => new CombinePromise<T,U,V>(a, b, c);
+        
+        public static IPromise<(T,U,V,W)> Combine<T,U,V,W>(
+            IPromise<T> a, 
+            IPromise<U> b,
+            IPromise<V> c,
+            IPromise<W> d) => new CombinePromise<T,U,V,W>(a, b, c, d);
+        
+        public static IPromise<(T,U,V,W,X)> Combine<T,U,V,W,X>(
+            IPromise<T> a, 
+            IPromise<U> b,
+            IPromise<V> c,
+            IPromise<W> d,
+            IPromise<X> e) => new CombinePromise<T,U,V,W,X>(a, b, c, d, e);
+        
+        public static IPromise<(T,U,V,W,X,Y)> Combine<T,U,V,W,X,Y>(
+            IPromise<T> a, 
+            IPromise<U> b,
+            IPromise<V> c,
+            IPromise<W> d,
+            IPromise<X> e,
+            IPromise<Y> f) => new CombinePromise<T,U,V,W,X,Y>(a, b, c, d, e, f);
+
+        public static IPromise Combine<T>(ICollection<IPromise<T>> promises) => new CombinePromise<T>(promises);
+        public static IPromise Combine<T>(params IPromise<T>[] promises) => new CombinePromise<T>(promises);
         
         #endregion
 

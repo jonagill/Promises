@@ -113,9 +113,11 @@ namespace Promises
             f.Catch(exception => TryThrow());
         }
         
-        public AnyPromise(params IPromise[] promises)
+        public AnyPromise(params IPromise[] promises) : this((ICollection<IPromise>) promises) {}
+
+        public AnyPromise(ICollection<IPromise> promises)
         {
-            _maxThrows = promises.Length;
+            _maxThrows = promises.Count;
             foreach (var promise in promises)
             {
                 promise.Then(TryComplete);
