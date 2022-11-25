@@ -5,6 +5,8 @@ namespace Promises
 {
     public class TypelessPromiseTests
     {
+        #region Basic Functionality
+        
         [Test]
         public void CompleteTriggersThen()
         {
@@ -222,6 +224,42 @@ namespace Promises
             Assert.AreEqual(1, callbackResult1);
             Assert.AreEqual(2, callbackResult2);
         }
+        
+        [Test]
+        public void CompleteSetsState()
+        {
+            var promise = new Promise();
+            
+            Assert.IsTrue(promise.IsPending);
+            Assert.IsFalse(promise.HasSucceeded);
+            Assert.IsFalse(promise.HasException);
+
+            promise.Complete();
+            
+            Assert.IsFalse(promise.IsPending);
+            Assert.IsTrue(promise.HasSucceeded);
+            Assert.IsFalse(promise.HasException);
+        }
+        
+        [Test]
+        public void ThrowSetsState()
+        {
+            var promise = new Promise();
+            
+            Assert.IsTrue(promise.IsPending);
+            Assert.IsFalse(promise.HasSucceeded);
+            Assert.IsFalse(promise.HasException);
+
+            promise.Throw(new Exception());
+            
+            Assert.IsFalse(promise.IsPending);
+            Assert.IsFalse(promise.HasSucceeded);
+            Assert.IsTrue(promise.HasException);
+        }
+        
+        #endregion
+        
+        #region Transformation Functions
 
         [Test]
         public void ContinueWithChainsPromisesOnComplete()
@@ -571,38 +609,8 @@ namespace Promises
             Assert.IsNull(exception);
             Assert.IsTrue(thenRan);
         }
-        
-        [Test]
-        public void CompleteSetsState()
-        {
-            var promise = new Promise();
-            
-            Assert.IsTrue(promise.IsPending);
-            Assert.IsFalse(promise.HasSucceeded);
-            Assert.IsFalse(promise.HasException);
 
-            promise.Complete();
-            
-            Assert.IsFalse(promise.IsPending);
-            Assert.IsTrue(promise.HasSucceeded);
-            Assert.IsFalse(promise.HasException);
-        }
-        
-        [Test]
-        public void ThrowSetsState()
-        {
-            var promise = new Promise();
-            
-            Assert.IsTrue(promise.IsPending);
-            Assert.IsFalse(promise.HasSucceeded);
-            Assert.IsFalse(promise.HasException);
-
-            promise.Throw(new Exception());
-            
-            Assert.IsFalse(promise.IsPending);
-            Assert.IsFalse(promise.HasSucceeded);
-            Assert.IsTrue(promise.HasException);
-        }
+        #endregion
         
         #region Helper Tests
         
