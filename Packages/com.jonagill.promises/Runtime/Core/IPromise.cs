@@ -13,8 +13,8 @@ namespace Promises
         IPromise Catch(Action<Exception> onThrow);
         IPromise Finally(Action onFinish);
         
-        IPromise ContinueWith(Func<IPromise> transformResult, Func<Exception, IPromise> transformException = null);
-        IPromise<T> ContinueWith<T>(Func<IPromise<T>> transformResult, Func<Exception, IPromise<T>> transformException = null);
+        IPromise ContinueWith(Func<IPromise> onComplete, Func<Exception, IPromise> onThrow = null);
+        IPromise<T> ContinueWith<T>(Func<IPromise<T>> onComplete, Func<Exception, IPromise<T>> onThrow = null);
         
         IPromise<T> Transform<T>(Func<T> transformResult);
         IPromise TransformException(Func<Exception, Exception> transformException);
@@ -27,8 +27,8 @@ namespace Promises
         new IPromise<T> Catch(Action<Exception> onThrow);
         new IPromise<T> Finally(Action onFinish);
 
-        IPromise ContinueWith(Func<T, IPromise> transformResult, Func<Exception, IPromise> transformException = null);
-        IPromise<U> ContinueWith<U>(Func<T, IPromise<U>> transformResult, Func<Exception, IPromise<U>> transformException = null);
+        IPromise ContinueWith(Func<T, IPromise> onComplete, Func<Exception, IPromise> onThrow = null);
+        IPromise<U> ContinueWith<U>(Func<T, IPromise<U>> onComplete, Func<Exception, IPromise<U>> onThrow = null);
         
         IPromise<U> Transform<U>(Func<T, U> transformResult);
         new IPromise<T> TransformException(Func<Exception, Exception> transformException);

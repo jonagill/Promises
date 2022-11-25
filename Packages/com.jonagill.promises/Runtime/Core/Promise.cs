@@ -265,6 +265,7 @@ namespace Promises
             }
 
             IsPending = false;
+            _exception = exception;
 
             Exception thrownException = null;
             foreach (var callback in _catchCallbacks)
@@ -293,21 +294,21 @@ namespace Promises
         #region Transformation Methods
 
         public IPromise ContinueWith(
-            Func<IPromise> transformResult,
-            Func<Exception, IPromise> transformException = null)
+            Func<IPromise> onComplete,
+            Func<Exception, IPromise> onThrow = null)
         {
-            if (transformResult == null)
+            if (onComplete == null)
             {
-                throw new ArgumentNullException(nameof(transformResult));
+                throw new ArgumentNullException(nameof(onComplete));
             }
 
             var newPromise = new Promise();
 
             this.Catch(e =>
             {
-                if (transformException != null)
+                if (onThrow != null)
                 {
-                    transformException(e)
+                    onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
                         .Then(() => newPromise.Complete());
                 }
@@ -319,7 +320,7 @@ namespace Promises
 
             this.Then(() =>
             {
-                transformResult()
+                onComplete()
                     .Catch(e => newPromise.Throw(e))
                     .Then(() => newPromise.Complete());
             });
@@ -328,21 +329,21 @@ namespace Promises
         }
 
         public IPromise<T> ContinueWith<T>(
-            Func<IPromise<T>> transformResult,
-            Func<Exception, IPromise<T>> transformException = null)
+            Func<IPromise<T>> onComplete,
+            Func<Exception, IPromise<T>> onThrow = null)
         {
-            if (transformResult == null)
+            if (onComplete == null)
             {
-                throw new ArgumentNullException(nameof(transformResult));
+                throw new ArgumentNullException(nameof(onComplete));
             }
 
             var newPromise = new Promise<T>();
 
             this.Catch(e =>
             {
-                if (transformException != null)
+                if (onThrow != null)
                 {
-                    transformException(e)
+                    onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
                         .Then(result => newPromise.Complete(result));
                 }
@@ -354,7 +355,7 @@ namespace Promises
 
             this.Then(() =>
             {
-                transformResult()
+                onComplete()
                     .Catch(e => newPromise.Throw(e))
                     .Then(result => newPromise.Complete(result));
             });
@@ -604,6 +605,7 @@ namespace Promises
             }
 
             IsPending = false;
+            _exception = exception;
 
             Exception thrownException = null;
             foreach (var callback in _catchCallbacks)
@@ -632,21 +634,21 @@ namespace Promises
         #region Transformation Functions
         
         public IPromise ContinueWith(
-            Func<IPromise> transformResult,
-            Func<Exception, IPromise> transformException = null)
+            Func<IPromise> onComplete,
+            Func<Exception, IPromise> onThrow = null)
         {
-            if (transformResult == null)
+            if (onComplete == null)
             {
-                throw new ArgumentNullException(nameof(transformResult));
+                throw new ArgumentNullException(nameof(onComplete));
             }
             
             var newPromise = new Promise();
 
             this.Catch(e =>
             {
-                if (transformException != null)
+                if (onThrow != null)
                 {
-                    transformException(e)
+                    onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
                         .Then(() => newPromise.Complete());
                 }
@@ -658,7 +660,7 @@ namespace Promises
 
             this.Then(() =>
             {
-                transformResult()
+                onComplete()
                     .Catch(e => newPromise.Throw(e))
                     .Then(() => newPromise.Complete());
             });
@@ -667,21 +669,21 @@ namespace Promises
         }
 
         public IPromise ContinueWith(
-            Func<T, IPromise> transformResult,
-            Func<Exception, IPromise> transformException = null)
+            Func<T, IPromise> onComplete,
+            Func<Exception, IPromise> onThrow = null)
         {
-            if (transformResult == null)
+            if (onComplete == null)
             {
-                throw new ArgumentNullException(nameof(transformResult));
+                throw new ArgumentNullException(nameof(onComplete));
             }
             
             var newPromise = new Promise();
 
             this.Catch(e =>
             {
-                if (transformException != null)
+                if (onThrow != null)
                 {
-                    transformException(e)
+                    onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
                         .Then(() => newPromise.Complete());
                 }
@@ -693,7 +695,7 @@ namespace Promises
 
             this.Then(result =>
             {
-                transformResult(result)
+                onComplete(result)
                     .Catch(e => newPromise.Throw(e))
                     .Then(() => newPromise.Complete());
             });
@@ -702,21 +704,21 @@ namespace Promises
         }
 
         public IPromise<U> ContinueWith<U>(
-            Func<IPromise<U>> transformResult, 
-            Func<Exception, IPromise<U>> transformException = null)
+            Func<IPromise<U>> onComplete, 
+            Func<Exception, IPromise<U>> onThrow = null)
         {
-            if (transformResult == null)
+            if (onComplete == null)
             {
-                throw new ArgumentNullException(nameof(transformResult));
+                throw new ArgumentNullException(nameof(onComplete));
             }
             
             var newPromise = new Promise<U>();
 
             this.Catch(e =>
             {
-                if (transformException != null)
+                if (onThrow != null)
                 {
-                    transformException(e)
+                    onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
                         .Then(result => newPromise.Complete(result));
                 }
@@ -728,7 +730,7 @@ namespace Promises
 
             this.Then(result =>
             {
-                transformResult()
+                onComplete()
                     .Catch(e => newPromise.Throw(e))
                     .Then(result2 => newPromise.Complete(result2));
             });
@@ -737,21 +739,21 @@ namespace Promises
         }
         
         public IPromise<U> ContinueWith<U>(
-            Func<T, IPromise<U>> transformResult,
-            Func<Exception, IPromise<U>> transformException = null)
+            Func<T, IPromise<U>> onComplete,
+            Func<Exception, IPromise<U>> onThrow = null)
         {
-            if (transformResult == null)
+            if (onComplete == null)
             {
-                throw new ArgumentNullException(nameof(transformResult));
+                throw new ArgumentNullException(nameof(onComplete));
             }
             
             var newPromise = new Promise<U>();
 
             this.Catch(e =>
             {
-                if (transformException != null)
+                if (onThrow != null)
                 {
-                    transformException(e)
+                    onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
                         .Then(result => newPromise.Complete(result));
                 }
@@ -763,7 +765,7 @@ namespace Promises
 
             this.Then(result =>
             {
-                transformResult(result)
+                onComplete(result)
                     .Catch(e => newPromise.Throw(e))
                     .Then(result2 => newPromise.Complete(result2));
             });
