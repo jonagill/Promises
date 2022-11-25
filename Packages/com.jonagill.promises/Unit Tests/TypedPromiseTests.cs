@@ -3,27 +3,41 @@ using NUnit.Framework;
 
 namespace Promises
 {
-    public class TypelessPromiseTests
+    public class TypedPromiseTests
     {
         [Test]
-        public void CompleteTriggersThen()
+        public void CompleteTriggersParameterlessThen()
         {
             var thenRan = false;
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise.Then(() => thenRan = true);
             
             Assert.IsFalse(thenRan);
             
-            promise.Complete();
+            promise.Complete(1);
             
             Assert.IsTrue(thenRan);
         }
         
         [Test]
-        public void CompletedPromiseCallsThenImmediately()
+        public void CompleteTriggersParameteredThen()
         {
-            var promise = new Promise();
-            promise.Complete();
+            int result = -1;
+            var promise = new Promise<int>();
+            promise.Then(r => result = r);
+            
+            Assert.AreEqual(-1, result);
+
+            promise.Complete(1);
+            
+            Assert.AreEqual(1, result);
+        }
+        
+        [Test]
+        public void CompletedPromiseCallsParameterlessThenImmediately()
+        {
+            var promise = new Promise<int>();
+            promise.Complete(1);
 
             var thenRan = false;
             promise.Then(() => thenRan = true);
@@ -32,12 +46,23 @@ namespace Promises
         }
         
         [Test]
+        public void CompletedPromiseCallsParameteredThenImmediately()
+        {
+            int result = -1;
+            var promise = new Promise<int>();
+            promise.Complete(1);
+            promise.Then(r => result = r);
+
+            Assert.AreEqual(1, result);
+        }
+        
+        [Test]
         public void ThrowTriggersCatch()
         {
             Exception exceptionThrown = null;
             Exception exceptionToThrow = new Exception("Error");
             
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise.Catch(e => exceptionThrown = e);
             
             Assert.AreEqual(null, exceptionThrown);
@@ -53,7 +78,7 @@ namespace Promises
             Exception exceptionThrown = null;
             Exception exceptionToThrow = new Exception("Error");
             
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise.Throw(exceptionToThrow);
             promise.Catch(e => exceptionThrown = e);
 
@@ -65,12 +90,12 @@ namespace Promises
         public void CompleteTriggersFinally()
         {
             var finallyRan = false;
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise.Finally(() => finallyRan = true);
             
             Assert.IsFalse(finallyRan);
             
-            promise.Complete();
+            promise.Complete(1);
             
             Assert.IsTrue(finallyRan);
         }
@@ -78,8 +103,8 @@ namespace Promises
         [Test]
         public void CompletedPromiseCallsFinallyImmediately()
         {
-            var promise = new Promise();
-            promise.Complete();
+            var promise = new Promise<int>();
+            promise.Complete(1);
 
             var finallyRan = false;
             promise.Finally(() => finallyRan = true);
@@ -91,7 +116,7 @@ namespace Promises
         public void ThrowTriggersFinally()
         {
             var finallyRan = false;
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise.Catch(e => finallyRan = true);
             
             Assert.IsFalse(finallyRan);
@@ -105,7 +130,7 @@ namespace Promises
         public void ThrownPromiseCallsFinallyImmediately()
         {
             var finallyRan = false;
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise.Throw(new Exception());
             promise.Catch(e => finallyRan = true);
 
@@ -120,7 +145,7 @@ namespace Promises
             var callbackResult1 = -1;
             var callbackResult2 = -1;
             
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise
                 .Then(() =>
                 {
@@ -142,7 +167,7 @@ namespace Promises
             Assert.AreEqual(-1, callbackResult1);
             Assert.AreEqual(-1, callbackResult2);
             
-            promise.Complete();
+            promise.Complete(1);
             
             Assert.AreEqual(0, callbackResult0);
             Assert.AreEqual(1, callbackResult1);
@@ -157,7 +182,7 @@ namespace Promises
             var callbackResult1 = -1;
             var callbackResult2 = -1;
             
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise
                 .Catch(e =>
                 {
@@ -194,7 +219,7 @@ namespace Promises
             var callbackResult1 = -1;
             var callbackResult2 = -1;
             
-            var promise = new Promise();
+            var promise = new Promise<int>();
             promise
                 .Finally(() =>
                 {
@@ -216,7 +241,7 @@ namespace Promises
             Assert.AreEqual(-1, callbackResult1);
             Assert.AreEqual(-1, callbackResult2);
             
-            promise.Complete();
+            promise.Complete(1);
             
             Assert.AreEqual(0, callbackResult0);
             Assert.AreEqual(1, callbackResult1);
@@ -226,7 +251,7 @@ namespace Promises
         [Test]
         public void ContinueWithChainsPromisesOnComplete()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise continuePromise = null;
             
             var bothPromisesCompleted = false;
@@ -245,7 +270,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsFalse(bothPromisesCompleted);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsFalse(bothPromisesCompleted);
@@ -259,7 +284,7 @@ namespace Promises
         [Test]
         public void ContinueWithSkipsOnThrow()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise continuePromise = null;
             Exception exception = null;
 
@@ -288,7 +313,7 @@ namespace Promises
         [Test]
         public void ContinueWithChainsPromisesOnThrow()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise continuePromise = null;
             Exception exception = null;
 
@@ -306,7 +331,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsNull(exception);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsNull(exception);
@@ -320,7 +345,7 @@ namespace Promises
         [Test]
         public void ContinueWithCanTransformExceptionOnThrow()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise onCompletePromise = null;
             Promise onThrowPromise = null;
             Exception exception = null;
@@ -363,7 +388,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithChainsPromisesOnComplete()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise<int> continuePromise = null;
             var result = -1;
 
@@ -381,7 +406,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.AreEqual(-1, result);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.AreEqual(-1, result);
@@ -395,7 +420,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithSkipsOnThrow()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise<int> continuePromise = null;
             Exception exception = null;
 
@@ -424,7 +449,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithChainsPromisesOnThrow()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise<int> continuePromise = null;
             Exception exception = null;
 
@@ -442,7 +467,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsNull(exception);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsNull(exception);
@@ -456,7 +481,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithCanTransformExceptionOnThrow()
         {
-            var firstPromise = new Promise();
+            var firstPromise = new Promise<int>();
             Promise<int> onCompletePromise = null;
             Promise<int> onThrowPromise = null;
             Exception exception = null;
@@ -500,13 +525,13 @@ namespace Promises
         [Test]
         public void CompleteSetsState()
         {
-            var promise = new Promise();
+            var promise = new Promise<int>();
             
             Assert.IsTrue(promise.IsPending);
             Assert.IsFalse(promise.HasSucceeded);
             Assert.IsFalse(promise.HasException);
 
-            promise.Complete();
+            promise.Complete(1);
             
             Assert.IsFalse(promise.IsPending);
             Assert.IsTrue(promise.HasSucceeded);
@@ -516,7 +541,7 @@ namespace Promises
         [Test]
         public void ThrowSetsState()
         {
-            var promise = new Promise();
+            var promise = new Promise<int>();
             
             Assert.IsTrue(promise.IsPending);
             Assert.IsFalse(promise.HasSucceeded);
@@ -528,18 +553,5 @@ namespace Promises
             Assert.IsFalse(promise.HasSucceeded);
             Assert.IsTrue(promise.HasException);
         }
-        
-        #region Helper Tests
-        
-        [Test]
-        public void CompletedPromiseWorks()
-        {
-            var thenRan = false;
-            Promise.CompletedPromise.Then(() => thenRan = true);
-            
-            Assert.IsTrue(thenRan);
-        }
-        
-        #endregion
     }
 }
