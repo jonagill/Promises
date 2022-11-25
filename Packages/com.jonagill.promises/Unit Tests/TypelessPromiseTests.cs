@@ -495,7 +495,82 @@ namespace Promises
             Assert.IsNotNull(onThrowPromise);
             Assert.AreEqual(onThrowException, exception);
         }
+        
+        [Test]
+        public void TransformResultTransformsResult()
+        {
+            var promise = new Promise();
+            int result = -1;
 
+            promise
+                .Transform(() => 1)
+                .Then(r => result = r);
+            
+            Assert.AreEqual(-1, result);
+            
+            promise.Complete();
+            
+            Assert.AreEqual(1, result);
+        }
+        
+        [Test]
+        public void TransformResultPassesOnThrow()
+        {
+            var promise = new Promise();
+            Exception exception = null;
+            Exception exceptionToThrow = new Exception();
+
+            promise
+                .Transform(() => 1)
+                .Catch(e => exception = e);
+            
+            Assert.IsNull(exception);
+
+            promise.Throw(exceptionToThrow);
+            
+            Assert.AreEqual(exceptionToThrow, exception);
+        }
+        
+        [Test]
+        public void TransformExceptionTransformsException()
+        {
+            var promise = new Promise();
+            Exception exception = null;
+            Exception exceptionToThrow = new Exception("First");
+            Exception tranformedException = new Exception("Transformed");
+
+            promise
+                .TransformException(e => tranformedException)
+                .Catch(e => exception = e);
+            
+            Assert.IsNull(exception);
+
+            promise.Throw(exceptionToThrow);
+            
+            Assert.AreEqual(tranformedException, exception);
+        }
+        
+        [Test]
+        public void TransformExceptionPassesOnComplete()
+        {
+            var promise = new Promise();
+            Exception exception = null;
+            bool thenRan = false;
+            Exception tranformedException = new Exception("Transformed");
+
+            promise
+                .TransformException(e => tranformedException)
+                .Catch(e => exception = e)
+                .Then(() => thenRan = true);
+            
+            Assert.IsNull(exception);
+            Assert.IsFalse(thenRan);
+
+            promise.Complete();
+            
+            Assert.IsNull(exception);
+            Assert.IsTrue(thenRan);
+        }
         
         [Test]
         public void CompleteSetsState()

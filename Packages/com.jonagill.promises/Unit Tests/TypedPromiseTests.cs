@@ -520,6 +520,117 @@ namespace Promises
             Assert.IsNotNull(onThrowPromise);
             Assert.AreEqual(onThrowException, exception);
         }
+        
+        [Test]
+        public void ParameterlessTransformResultTransformsResult()
+        {
+            var promise = new Promise<int>();
+            string result = null;
+
+            promise
+                .Transform(() => "Transformed")
+                .Then(r => result = r);
+            
+            Assert.IsNull(result);
+            
+            promise.Complete(1);
+            
+            Assert.AreEqual("Transformed", result);
+        }
+        
+        [Test]
+        public void ParameterlessTransformResultPassesOnThrow()
+        {
+            var promise = new Promise<int>();
+            Exception exception = null;
+            Exception exceptionToThrow = new Exception();
+
+            promise
+                .Transform(() => "Transformed")
+                .Catch(e => exception = e);
+            
+            Assert.IsNull(exception);
+
+            promise.Throw(exceptionToThrow);
+            
+            Assert.AreEqual(exceptionToThrow, exception);
+        }
+        
+        [Test]
+        public void TransformResultTransformsResult()
+        {
+            var promise = new Promise<int>();
+            string result = null;
+
+            promise
+                .Transform(() => "Transformed")
+                .Then(r => result = r);
+            
+            Assert.IsNull(result);
+            
+            promise.Complete(1);
+            
+            Assert.AreEqual("Transformed", result);
+        }
+        
+        [Test]
+        public void TransformResultPassesOnThrow()
+        {
+            var promise = new Promise<int>();
+            Exception exception = null;
+            Exception exceptionToThrow = new Exception();
+
+            promise
+                .Transform(() => "Transformed")
+                .Catch(e => exception = e);
+            
+            Assert.IsNull(exception);
+
+            promise.Throw(exceptionToThrow);
+            
+            Assert.AreEqual(exceptionToThrow, exception);
+        }
+        
+        [Test]
+        public void TransformExceptionTransformsException()
+        {
+            var promise = new Promise<int>();
+            Exception exception = null;
+            Exception exceptionToThrow = new Exception("First");
+            Exception tranformedException = new Exception("Transformed");
+
+            promise
+                .TransformException(e => tranformedException)
+                .Catch(e => exception = e);
+            
+            Assert.IsNull(exception);
+
+            promise.Throw(exceptionToThrow);
+            
+            Assert.AreEqual(tranformedException, exception);
+        }
+        
+        [Test]
+        public void TransformExceptionPassesOnComplete()
+        {
+            var promise = new Promise<int>();
+            Exception exception = null;
+            bool thenRan = false;
+            Exception tranformedException = new Exception("Transformed");
+
+            promise
+                .TransformException(e => tranformedException)
+                .Catch(e => exception = e)
+                .Then(() => thenRan = true);
+            
+            Assert.IsNull(exception);
+            Assert.IsFalse(thenRan);
+
+            promise.Complete(1);
+            
+            Assert.IsNull(exception);
+            Assert.IsTrue(thenRan);
+        }
 
         
         [Test]
