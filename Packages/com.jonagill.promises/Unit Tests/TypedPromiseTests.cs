@@ -154,7 +154,8 @@ namespace Promises
                     callbackResult0 = callbacksExecuted;
                     callbacksExecuted++;
                 })
-                .Then(() =>
+                // Interleave both parameterless and parametered Thens
+                .Then(r =>
                 {
                     callbackResult1 = callbacksExecuted;
                     callbacksExecuted++;
@@ -284,6 +285,235 @@ namespace Promises
         
         #endregion
         
+        #region Exceptions
+
+        [Test]
+        public void ThenMustHaveCallback()
+        {
+            var promise = new Promise<int>();
+            Assert.Throws<ArgumentNullException>(() => promise.Then((Action<int>) null));
+        }
+        
+        [Test]
+        public void ParameterlessThenMustHaveCallback()
+        {
+            var promise = new Promise<int>();
+            Assert.Throws<ArgumentNullException>(() => promise.Then((Action) null));
+        }
+        
+        [Test]
+        public void CatchMustHaveCallback()
+        {
+            var promise = new Promise<int>();
+            Assert.Throws<ArgumentNullException>(() => promise.Catch(null));
+        }
+        
+        [Test]
+        public void FinallyMustHaveCallback()
+        {
+            var promise = new Promise<int>();
+            Assert.Throws<ArgumentNullException>(() => promise.Finally(null));
+        }
+        
+        [Test]
+        public void ThrowMustHaveException()
+        {
+            var promise = new Promise<int>();
+            Assert.Throws<ArgumentNullException>(() => promise.Throw(null));
+        }
+        
+        [Test]
+        public void CannotCompleteNonPendingPromise()
+        {
+            var promise = new Promise<int>();
+            promise.Complete(1);
+            Assert.Throws<InvalidOperationException>(() => promise.Complete(2));
+        }
+        
+        [Test]
+        public void CannotThrowNonPendingPromise()
+        {
+            var promise = new Promise<int>();
+            promise.Complete(1);
+            Assert.Throws<InvalidOperationException>(() => promise.Throw(new Exception()));
+        }
+
+        [Test]
+        public void CompleteRethrowsInternalException()
+        {
+            var aResult = -1;
+            var bResult = -1;
+            var cResult = -1;
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new Promise<int>();
+            promise
+                .Then(r => aResult = r)
+                .Then(r => throw internalException)
+                .Then(r => cResult = r);
+            
+            Assert.AreEqual(-1, aResult);
+            Assert.AreEqual(-1, bResult);
+            Assert.AreEqual(-1, cResult);
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Complete(1);
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.AreEqual(1, aResult);
+            Assert.AreEqual(-1, bResult);
+            Assert.AreEqual(1, cResult);
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+        
+        [Test]
+        public void ThrowRethrowsInternalException()
+        {
+            Exception aCaught = null;
+            Exception bCaught = null;
+            Exception cCaught = null;
+            
+            var promiseException = new Exception("First");
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new Promise<int>();
+            promise
+                .Catch(e => aCaught = e)
+                .Catch(e => throw internalException)
+                .Catch(e => cCaught = e);
+            
+            Assert.IsNull(aCaught);
+            Assert.IsNull(bCaught);
+            Assert.IsNull(cCaught);
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Throw(promiseException);
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.AreEqual(promiseException, aCaught);
+            Assert.IsNull(bCaught);
+            Assert.AreEqual(promiseException, cCaught);
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+        
+        [Test]
+        public void CompleteRethrowsInternalExceptionFromFinally()
+        {
+            var aRun = false;
+            var bRun = false;
+            var cRun = false;
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new Promise<int>();
+            promise
+                .Finally(() => aRun = true)
+                .Finally(() => throw internalException)
+                .Finally(() => cRun = true);
+            
+            Assert.IsFalse(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsFalse(cRun);
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Complete(1);
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.IsTrue(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsTrue(cRun);
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+        
+        [Test]
+        public void ThrowRethrowsInternalExceptionFromFinally()
+        {
+            var aRun = false;
+            var bRun = false;
+            var cRun = false;
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new Promise<int>();
+            promise
+                .Finally(() => aRun = true)
+                .Finally(() => throw internalException)
+                .Finally(() => cRun = true);
+            
+            Assert.IsFalse(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsFalse(cRun);
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Throw(new Exception());
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.IsTrue(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsTrue(cRun);
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+        
+        [Test]
+        public void OnlyFinalInternalExceptionIsRethrown()
+        {
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new Promise<int>();
+            promise
+                .Then(r => throw new Exception())
+                .Then(() => throw new Exception())
+                .Finally(() => throw new Exception())
+                .Finally(() => throw internalException);
+            
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Complete(1);
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+        
+        #endregion
+
         #region Transformation Functions
 
         [Test]

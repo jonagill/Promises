@@ -285,7 +285,7 @@ namespace Promises
 
             if (thrownException != null)
             {
-                throw new PromiseExecutionException(exception);
+                throw new PromiseExecutionException(thrownException);
             }
         }
 
@@ -625,7 +625,7 @@ namespace Promises
 
             if (thrownException != null)
             {
-                throw new PromiseExecutionException(exception);
+                throw new PromiseExecutionException(thrownException);
             }
         }
         
