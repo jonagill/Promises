@@ -7,8 +7,6 @@ namespace Promises
     public class CancelablePromise : Promise, ICancelablePromise
     {
         public bool IsCanceled { get; private set; }
-        public bool CanBeCanceled => IsPending && _cancellationTokenSource != null;
-
         private readonly List<Action> _canceledCallbacks = new List<Action>();
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -115,11 +113,11 @@ namespace Promises
                 throw new ArgumentNullException(nameof(onCancel));
             }
 
-            if (IsCanceled)
+            if (IsPending)
             {
                 _canceledCallbacks.Add(onCancel);
             }
-            else
+            else if (IsCanceled)
             {
                 onCancel();
             }
@@ -349,8 +347,6 @@ namespace Promises
     public class CancelablePromise<T> : Promise<T>, ICancelablePromise<T>
     {
         public bool IsCanceled { get; private set; }
-        public bool CanBeCanceled => IsPending && _cancellationTokenSource != null;
-
         private readonly List<Action> _canceledCallbacks = new List<Action>();
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -462,11 +458,11 @@ namespace Promises
                 throw new ArgumentNullException(nameof(onCancel));
             }
 
-            if (IsCanceled)
+            if (IsPending)
             {
                 _canceledCallbacks.Add(onCancel);
             }
-            else
+            else if (IsCanceled)
             {
                 onCancel();
             }

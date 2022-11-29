@@ -5,16 +5,28 @@ namespace Promises
 {
     public enum CancellationChainingType
     {
+        /// <summary>
+        /// Chains two CancelablePromises using the same CancellationTokenSource,
+        /// so that cancelling one cancels both the promise it is chaining from
+        /// and any promises that chain from it.
+        /// </summary>
         CancelAll,
+        /// <summary>
+        /// Chains two CancelablePromises using the same CancellationToken,
+        /// so that canceling the original promise cancels the promises that
+        /// chain from it.
+        /// </summary>
         CancelChildren,
+        /// <summary>
+        /// Chains two CancelablePromises with completely unrelated CancellationTokens,
+        /// so that canceling either promise does not cancel the other.
+        /// </summary>
         DontChain,
     }
     
     public interface IReadOnlyCancelablePromise : IPromise
     {
         bool IsCanceled { get; }
-        CancellationToken CancellationToken { get; }
-
         IReadOnlyCancelablePromise Canceled(Action onCancel);
         new IReadOnlyCancelablePromise Then(Action onComplete);
         new IReadOnlyCancelablePromise Catch(Action<Exception> onThrow);
@@ -37,7 +49,6 @@ namespace Promises
     
     public interface ICancelablePromise : IReadOnlyCancelablePromise
     {
-        bool CanBeCanceled { get; }
         void Cancel();
         
         new ICancelablePromise Canceled(Action onCancel);
