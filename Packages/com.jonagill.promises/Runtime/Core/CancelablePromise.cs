@@ -879,12 +879,12 @@ namespace Promises
 
         IReadOnlyCancelablePromise<U> IReadOnlyCancelablePromise<T>.Transform<U>(Func<T, U> transformResult)
         {
-            throw new NotImplementedException();
+            return Transform(transformResult);
         }
 
         IReadOnlyCancelablePromise<T> IReadOnlyCancelablePromise<T>.TransformException(Func<Exception, Exception> transformException)
         {
-            throw new NotImplementedException();
+            return TransformException(transformException);
         }
 
         IReadOnlyCancelablePromise IReadOnlyCancelablePromise<T>.Then(Action<T> onComplete)
