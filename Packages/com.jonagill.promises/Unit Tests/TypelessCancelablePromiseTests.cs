@@ -6,6 +6,8 @@ namespace Promises
 {
     public class TypelessCancelablePromiseTests
     {
+        #region Basic Functionality
+        
         [Test]
         public void CancelInvokesCallbacks()
         {
@@ -56,6 +58,43 @@ namespace Promises
             promise.Finally(() => finallyRan = true);
             
             Assert.IsTrue(finallyRan);
+        }
+        
+        [Test]
+        public void CanceledCallbacksExecuteInOrder()
+        {
+            var callbacksExecuted = 0;
+            var callbackResult0 = -1;
+            var callbackResult1 = -1;
+            var callbackResult2 = -1;
+            
+            var promise = new CancelablePromise();
+            promise
+                .Canceled(() =>
+                {
+                    callbackResult0 = callbacksExecuted;
+                    callbacksExecuted++;
+                })
+                .Canceled(() =>
+                {
+                    callbackResult1 = callbacksExecuted;
+                    callbacksExecuted++;
+                })
+                .Canceled(() =>
+                {
+                    callbackResult2 = callbacksExecuted;
+                    callbacksExecuted++;
+                });
+            
+            Assert.AreEqual(-1, callbackResult0);
+            Assert.AreEqual(-1, callbackResult1);
+            Assert.AreEqual(-1, callbackResult2);
+            
+            promise.Cancel();
+            
+            Assert.AreEqual(0, callbackResult0);
+            Assert.AreEqual(1, callbackResult1);
+            Assert.AreEqual(2, callbackResult2);
         }
         
         [Test]
@@ -149,5 +188,126 @@ namespace Promises
             Assert.IsFalse(promise.IsCanceled);
             Assert.IsFalse(promise.IsPending);
         }
+        
+        #endregion
+        
+        #region Exceptions
+        
+        [Test]
+        public void CanceledMustHaveCallback()
+        {
+            var promise = new CancelablePromise();
+            Assert.Throws<ArgumentNullException>(() => promise.Canceled(null));
+        }
+        
+        [Test]
+        public void CannotCancelNonPendingPromise()
+        {
+            var promise = new CancelablePromise();
+            promise.Complete();
+            Assert.Throws<InvalidOperationException>(() => promise.Cancel());
+        }
+        
+        [Test]
+        public void CancelRethrowsInternalException()
+        {
+            var aRun = false;
+            var bRun = false;
+            var cRun = false;
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new CancelablePromise();
+            promise
+                .Canceled(() => aRun = true)
+                .Canceled(() => throw internalException)
+                .Canceled(() => cRun = true);
+            
+            Assert.IsFalse(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsFalse(cRun);
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Cancel();
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.IsTrue(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsTrue(cRun);
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+        
+        [Test]
+        public void CancelRethrowsInternalExceptionFromFinally()
+        {
+            var aRun = false;
+            var bRun = false;
+            var cRun = false;
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new CancelablePromise();
+            promise
+                .Finally(() => aRun = true)
+                .Finally(() => throw internalException)
+                .Finally(() => cRun = true);
+            
+            Assert.IsFalse(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsFalse(cRun);
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Cancel();
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.IsTrue(aRun);
+            Assert.IsFalse(bRun);
+            Assert.IsTrue(cRun);
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);        }
+        
+        [Test]
+        public void OnlyFinalInternalExceptionIsRethrown()
+        {
+            var internalException = new Exception("Internal");
+            Exception caughtException = null;
+            
+            var promise = new CancelablePromise();
+            promise
+                .Canceled(() => throw new Exception())
+                .Canceled(() => throw new Exception())
+                .Finally(() => throw new Exception())
+                .Finally(() => throw internalException);
+            
+            Assert.IsNull(caughtException);
+
+            try
+            {
+                promise.Cancel();
+            }
+            catch (Exception e)
+            {
+                caughtException = e;
+            }
+            
+            Assert.IsNotNull(caughtException);
+            Assert.AreEqual(internalException, caughtException.InnerException);
+        }
+
+        
+        #endregion
     }
 }

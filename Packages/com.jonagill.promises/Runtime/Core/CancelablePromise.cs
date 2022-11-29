@@ -49,7 +49,22 @@ namespace Promises
                 throw new InvalidOperationException($"Cannot cancel a non-pending promise.");
             }
 
-            _cancellationTokenSource.Cancel();
+            try
+            {
+                _cancellationTokenSource.Cancel();
+            }
+            catch (Exception e)
+            {
+                // Exceptions thrown while canceling a TokenSource get wrapped
+                // in an AggregateException
+                if (e.InnerException != null)
+                {
+                    throw new PromiseExecutionException(e.InnerException);    
+                }
+
+                throw new PromiseExecutionException(e);
+                
+            }
         }
 
         private void OnCancellation()
@@ -78,16 +93,16 @@ namespace Promises
             ExecuteFinallyCallbacks(ref thrownException);
             ClearCallbacks();
 
-            if (thrownException != null)
-            {
-                throw new PromiseExecutionException(thrownException);
-            }
-
-            if (_cancellationTokenSource.IsCancellationRequested)
+            if (!_cancellationTokenSource.IsCancellationRequested)
             {
                 // If we were canceled via another cancellation token other than our own
                 // Flag our own cancellation token as canceled as well
                 _cancellationTokenSource.Cancel();
+            }
+            
+            if (thrownException != null)
+            {
+                throw thrownException;
             }
         }
 
@@ -389,7 +404,21 @@ namespace Promises
                 throw new InvalidOperationException($"Cannot cancel a non-pending promise.");
             }
 
-            _cancellationTokenSource.Cancel();
+            try
+            {
+                _cancellationTokenSource.Cancel();
+            }
+            catch (Exception e)
+            {
+                // Exceptions thrown while canceling a TokenSource get wrapped
+                // in an AggregateException
+                if (e.InnerException != null)
+                {
+                    throw new PromiseExecutionException(e.InnerException);    
+                }
+
+                throw new PromiseExecutionException(e);
+            }
         }
         
         private void OnCancellation()
@@ -418,16 +447,19 @@ namespace Promises
             ExecuteFinallyCallbacks(ref thrownException);
             ClearCallbacks();
 
-            if (thrownException != null)
-            {
-                throw new PromiseExecutionException(thrownException);
-            }
-
-            if (_cancellationTokenSource.IsCancellationRequested)
+            if (!_cancellationTokenSource.IsCancellationRequested)
             {
                 // If we were canceled via another cancellation token other than our own
                 // Flag our own cancellation token as canceled as well
                 _cancellationTokenSource.Cancel();
+            }
+            
+            if (thrownException != null)
+            {
+                // Don't bother wrapping in a PromiseExecutionException
+                // The CancellationTokenSource code will automatically
+                // wrap our exception in an AggregateException
+                throw thrownException;
             }
         }
         
