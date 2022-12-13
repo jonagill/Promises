@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Promises
 {
-    public class TypelessCancelablePromiseTests
+    public class TypedCancelablePromiseTests
     {
         #region Basic Functionality
         
@@ -12,7 +12,7 @@ namespace Promises
         public void CancelInvokesCallbacks()
         {
             var canceledRan = false;
-            var promise = new CancelablePromise()
+            var promise = new CancelablePromise<int>()
                 .Canceled(() => canceledRan = true);
             
             Assert.IsFalse(canceledRan);
@@ -25,7 +25,7 @@ namespace Promises
         [Test]
         public void CanceledPromiseCallsCanceledImmediately()
         {
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise.Cancel();
             
             var canceledRan = false;
@@ -38,7 +38,7 @@ namespace Promises
         public void CancelTriggersFinally()
         {
             var finallyRan = false;
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise.Finally(() => finallyRan = true);
             
             Assert.IsFalse(finallyRan);
@@ -51,7 +51,7 @@ namespace Promises
         [Test]
         public void CanceledPromiseCallsFinallyImmediately()
         {
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise.Cancel();
 
             var finallyRan = false;
@@ -68,7 +68,7 @@ namespace Promises
             var callbackResult1 = -1;
             var callbackResult2 = -1;
             
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise
                 .Canceled(() =>
                 {
@@ -156,7 +156,7 @@ namespace Promises
         [Test]
         public void CancelingPromiseSetsState()
         {
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             Assert.IsFalse(promise.IsCanceled);
             Assert.IsTrue(promise.IsPending);
             
@@ -168,11 +168,11 @@ namespace Promises
         [Test]
         public void CompletingPromiseSetsState()
         {
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             Assert.IsFalse(promise.IsCanceled);
             Assert.IsTrue(promise.IsPending);
             
-            promise.Complete();
+            promise.Complete(1);
             Assert.IsFalse(promise.IsCanceled);
             Assert.IsFalse(promise.IsPending);
         }
@@ -180,7 +180,7 @@ namespace Promises
         [Test]
         public void ThrowingPromiseSetsState()
         {
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             Assert.IsFalse(promise.IsCanceled);
             Assert.IsTrue(promise.IsPending);
             
@@ -196,15 +196,15 @@ namespace Promises
         [Test]
         public void CanceledMustHaveCallback()
         {
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             Assert.Throws<ArgumentNullException>(() => promise.Canceled(null));
         }
         
         [Test]
         public void CannotCancelNonPendingPromise()
         {
-            var promise = new CancelablePromise();
-            promise.Complete();
+            var promise = new CancelablePromise<int>();
+            promise.Complete(1);
             Assert.Throws<InvalidOperationException>(() => promise.Cancel());
         }
         
@@ -217,7 +217,7 @@ namespace Promises
             var internalException = new Exception("Internal");
             Exception caughtException = null;
             
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise
                 .Canceled(() => aRun = true)
                 .Canceled(() => throw internalException)
@@ -253,7 +253,7 @@ namespace Promises
             var internalException = new Exception("Internal");
             Exception caughtException = null;
             
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise
                 .Finally(() => aRun = true)
                 .Finally(() => throw internalException)
@@ -285,7 +285,7 @@ namespace Promises
             var internalException = new Exception("Internal");
             Exception caughtException = null;
             
-            var promise = new CancelablePromise();
+            var promise = new CancelablePromise<int>();
             promise
                 .Canceled(() => throw new Exception())
                 .Canceled(() => throw new Exception())
@@ -314,7 +314,7 @@ namespace Promises
         [Test]
         public void ContinueWithChainsPromisesOnComplete()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise continuePromise = null;
             
             var bothPromisesCompleted = false;
@@ -335,7 +335,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsFalse(bothPromisesCompleted);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsFalse(bothPromisesCompleted);
@@ -349,7 +349,7 @@ namespace Promises
         [Test]
         public void ContinueWithSkipsOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise continuePromise = null;
             Exception exception = null;
 
@@ -378,7 +378,7 @@ namespace Promises
         [Test]
         public void ContinueWithChainsPromisesOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise continuePromise = null;
             Exception exception = null;
 
@@ -396,7 +396,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsNull(exception);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsNull(exception);
@@ -410,7 +410,7 @@ namespace Promises
         [Test]
         public void ContinueWithCanTransformExceptionOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise onCompletePromise = null;
             Promise onThrowPromise = null;
             Exception exception = null;
@@ -453,7 +453,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithChainsPromisesOnComplete()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise<int> continuePromise = null;
             var result = -1;
 
@@ -471,7 +471,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.AreEqual(-1, result);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.AreEqual(-1, result);
@@ -485,7 +485,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithSkipsOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise<int> continuePromise = null;
             Exception exception = null;
 
@@ -514,7 +514,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithChainsPromisesOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise<int> continuePromise = null;
             Exception exception = null;
 
@@ -532,7 +532,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsNull(exception);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsNull(exception);
@@ -546,7 +546,7 @@ namespace Promises
         [Test]
         public void TypedContinueWithCanTransformExceptionOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             Promise<int> onCompletePromise = null;
             Promise<int> onThrowPromise = null;
             Exception exception = null;
@@ -589,9 +589,8 @@ namespace Promises
         [Test]
         public void CancelableContinueWithChainsPromisesOnComplete()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise continuePromise = null;
-            
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise continuePromise = null;            
             var bothPromisesCompleted = false;
 
             firstPromise
@@ -608,7 +607,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsFalse(bothPromisesCompleted);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsFalse(bothPromisesCompleted);
@@ -622,7 +621,7 @@ namespace Promises
         [Test]
         public void CancelableContinueWithSkipsOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise continuePromise = null;
             Exception exception = null;
 
@@ -651,7 +650,7 @@ namespace Promises
         [Test]
         public void CancelableContinueWithChainsPromisesOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise continuePromise = null;
             Exception exception = null;
 
@@ -669,7 +668,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsNull(exception);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsNull(exception);
@@ -683,7 +682,7 @@ namespace Promises
         [Test]
         public void CancelableContinueWithCanTransformExceptionOnThrow()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise onCompletePromise = null;
             CancelablePromise onThrowPromise = null;
             Exception exception = null;
@@ -726,7 +725,7 @@ namespace Promises
         [Test]
         public void CancelingInitialPromiseCancelsContinueWithPromise()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
@@ -749,7 +748,7 @@ namespace Promises
         [Test]
         public void CancelingContinueWithPromiseCancelsInitialPromise()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
@@ -772,7 +771,7 @@ namespace Promises
         [Test]
         public void CancelingContinueWithPromiseCancelsChainedPromise()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
@@ -785,7 +784,7 @@ namespace Promises
             Assert.IsTrue(continueWithPromise.IsPending);
             Assert.IsNull(chainedPromise);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsTrue(firstPromise.HasSucceeded);
             Assert.IsTrue(continueWithPromise.IsPending);
@@ -803,7 +802,7 @@ namespace Promises
         [Test]
         public void CancelingChainedPromiseCancelsContinueWithPromise()
         {
-            var firstPromise = new CancelablePromise();
+            var firstPromise = new CancelablePromise<int>();
             CancelablePromise chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
@@ -816,7 +815,7 @@ namespace Promises
             Assert.IsTrue(continueWithPromise.IsPending);
             Assert.IsNull(chainedPromise);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsTrue(firstPromise.HasSucceeded);
             Assert.IsTrue(continueWithPromise.IsPending);
@@ -834,14 +833,14 @@ namespace Promises
         [Test]
         public void CancelableTypedContinueWithChainsPromisesOnComplete()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> continuePromise = null;
-            var result = -1;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> continuePromise = null;
+            var result = string.Empty;
 
             firstPromise
                 .ContinueWith(() =>
                 {
-                    continuePromise = new CancelablePromise<int>();
+                    continuePromise = new CancelablePromise<string>();
                     return continuePromise;
                 })
                 .Then(r =>
@@ -850,30 +849,30 @@ namespace Promises
                 });
             
             Assert.IsNull(continuePromise);
-            Assert.AreEqual(-1, result);
+            Assert.AreEqual(string.Empty, result);
             
-            firstPromise.Complete();
-            
-            Assert.IsNotNull(continuePromise);
-            Assert.AreEqual(-1, result);
-            
-            continuePromise.Complete(99);
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
-            Assert.AreEqual(99, result);
+            Assert.AreEqual(string.Empty, result);
+            
+            continuePromise.Complete("Result");
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.AreEqual("Result", result);
         }
         
         [Test]
         public void CancelableTypedContinueWithSkipsOnThrow()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> continuePromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> continuePromise = null;
             Exception exception = null;
 
             firstPromise
                 .ContinueWith(() =>
                 {
-                    continuePromise = new CancelablePromise<int>();
+                    continuePromise = new CancelablePromise<string>();
                     return continuePromise;
                 })
                 .Catch(e =>
@@ -895,14 +894,14 @@ namespace Promises
         [Test]
         public void CancelableTypedContinueWithChainsPromisesOnThrow()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> continuePromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> continuePromise = null;
             Exception exception = null;
 
             firstPromise
                 .ContinueWith(() =>
                 {
-                    continuePromise = new CancelablePromise<int>();
+                    continuePromise = new CancelablePromise<string>();
                     return continuePromise;
                 })
                 .Catch(e =>
@@ -913,7 +912,7 @@ namespace Promises
             Assert.IsNull(continuePromise);
             Assert.IsNull(exception);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsNotNull(continuePromise);
             Assert.IsNull(exception);
@@ -927,9 +926,9 @@ namespace Promises
         [Test]
         public void CancelableTypedContinueWithCanTransformExceptionOnThrow()
         {
-            var firstPromise = new CancelablePromise();
-            Promise<int> onCompletePromise = null;
-            Promise<int> onThrowPromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            Promise<string> onCompletePromise = null;
+            Promise<string> onThrowPromise = null;
             Exception exception = null;
 
             var firstException = new Exception("First");
@@ -938,11 +937,11 @@ namespace Promises
             firstPromise
                 .ContinueWith(onComplete:() =>
                 {
-                    onCompletePromise = new Promise<int>();
+                    onCompletePromise = new Promise<string>();
                     return onCompletePromise;
                 }, onThrow: e =>
                 {
-                    onThrowPromise = new Promise<int>();
+                    onThrowPromise = new Promise<string>();
                     return onThrowPromise;
                 })
                 .Catch(e =>
@@ -970,12 +969,12 @@ namespace Promises
         [Test]
         public void CancelingInitialPromiseCancelsTypedContinueWithPromise()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> chainedPromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
                 {
-                    chainedPromise = new CancelablePromise<int>();
+                    chainedPromise = new CancelablePromise<string>();
                     return chainedPromise;
                 });
 
@@ -993,12 +992,12 @@ namespace Promises
         [Test]
         public void CancelingTypedContinueWithPromiseCancelsInitialPromise()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> chainedPromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
                 {
-                    chainedPromise = new CancelablePromise<int>();
+                    chainedPromise = new CancelablePromise<string>();
                     return chainedPromise;
                 });
 
@@ -1016,12 +1015,12 @@ namespace Promises
         [Test]
         public void CancelingTypedContinueWithPromiseCancelsChainedPromise()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> chainedPromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
                 {
-                    chainedPromise = new CancelablePromise<int>();
+                    chainedPromise = new CancelablePromise<string>();
                     return chainedPromise;
                 });
 
@@ -1029,7 +1028,7 @@ namespace Promises
             Assert.IsTrue(continueWithPromise.IsPending);
             Assert.IsNull(chainedPromise);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsTrue(firstPromise.HasSucceeded);
             Assert.IsTrue(continueWithPromise.IsPending);
@@ -1047,12 +1046,12 @@ namespace Promises
         [Test]
         public void CancelingChainedPromiseCancelsTypedContinueWithPromise()
         {
-            var firstPromise = new CancelablePromise();
-            CancelablePromise<int> chainedPromise = null;
+            var firstPromise = new CancelablePromise<int>();
+            CancelablePromise<string> chainedPromise = null;
             var continueWithPromise = firstPromise
                 .ContinueWith(onComplete: () =>
                 {
-                    chainedPromise = new CancelablePromise<int>();
+                    chainedPromise = new CancelablePromise<string>();
                     return chainedPromise;
                 });
 
@@ -1060,7 +1059,7 @@ namespace Promises
             Assert.IsTrue(continueWithPromise.IsPending);
             Assert.IsNull(chainedPromise);
             
-            firstPromise.Complete();
+            firstPromise.Complete(1);
             
             Assert.IsTrue(firstPromise.HasSucceeded);
             Assert.IsTrue(continueWithPromise.IsPending);
