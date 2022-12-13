@@ -724,6 +724,114 @@ namespace Promises
         }
         
         [Test]
+        public void CancelingInitialPromiseCancelsContinueWithPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            firstPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.IsCanceled);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNull(chainedPromise);
+        }
+        
+        [Test]
+        public void CancelingContinueWithPromiseCancelsInitialPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            continueWithPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.IsCanceled);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNull(chainedPromise);
+        }
+        
+        [Test]
+        public void CancelingContinueWithPromiseCancelsChainedPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            firstPromise.Complete();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsPending);
+            
+            continueWithPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsCanceled);
+        }
+        
+        [Test]
+        public void CancelingChainedPromiseCancelsContinueWithPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            firstPromise.Complete();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsPending);
+            
+            continueWithPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsCanceled);
+        }
+        
+        [Test]
         public void CancelableTypedContinueWithChainsPromisesOnComplete()
         {
             var firstPromise = new CancelablePromise();
@@ -857,6 +965,114 @@ namespace Promises
             Assert.IsNull(onCompletePromise);
             Assert.IsNotNull(onThrowPromise);
             Assert.AreEqual(onThrowException, exception);
+        }
+        
+        [Test]
+        public void CancelingInitialPromiseCancelsTypedContinueWithPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise<int>();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            firstPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.IsCanceled);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNull(chainedPromise);
+        }
+        
+        [Test]
+        public void CancelingTypedContinueWithPromiseCancelsInitialPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise<int>();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            continueWithPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.IsCanceled);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNull(chainedPromise);
+        }
+        
+        [Test]
+        public void CancelingTypedContinueWithPromiseCancelsChainedPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise<int>();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            firstPromise.Complete();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsPending);
+            
+            continueWithPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsCanceled);
+        }
+        
+        [Test]
+        public void CancelingChainedPromiseCancelsTypedContinueWithPromise()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> chainedPromise = null;
+            var continueWithPromise = firstPromise
+                .ContinueWith(onComplete: () =>
+                {
+                    chainedPromise = new CancelablePromise<int>();
+                    return chainedPromise;
+                });
+
+            Assert.IsTrue(firstPromise.IsPending);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNull(chainedPromise);
+            
+            firstPromise.Complete();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsPending);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsPending);
+            
+            continueWithPromise.Cancel();
+            
+            Assert.IsTrue(firstPromise.HasSucceeded);
+            Assert.IsTrue(continueWithPromise.IsCanceled);
+            Assert.IsNotNull(chainedPromise);
+            Assert.IsTrue(chainedPromise.IsCanceled);
         }
         
         #endregion

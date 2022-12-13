@@ -36,6 +36,7 @@ namespace Promises
     
     public interface ICancelablePromise : IReadOnlyCancelablePromise
     {
+        void CancelIfPending();
         void Cancel();
         
         new ICancelablePromise Canceled(Action onCancel);
@@ -46,18 +47,9 @@ namespace Promises
         // ICancelablePromise Continues
         ICancelablePromise ContinueWith(
             Func<ICancelablePromise> onComplete);
-        
+
         ICancelablePromise ContinueWith(
             Func<ICancelablePromise> onComplete,
-            Func<ICancelablePromise> onCancel);
-        
-        ICancelablePromise ContinueWith(
-            Func<ICancelablePromise> onComplete,
-            Func<Exception, ICancelablePromise> onThrow);
-        
-        ICancelablePromise ContinueWith(
-            Func<ICancelablePromise> onComplete,
-            Func<ICancelablePromise> onCancel,
             Func<Exception, ICancelablePromise> onThrow);
 
         // ICancelablePromise<T> Continues
@@ -66,15 +58,6 @@ namespace Promises
 
         ICancelablePromise<T> ContinueWith<T>(
             Func<ICancelablePromise<T>> onComplete,
-            Func<ICancelablePromise<T>> onCancel);
-
-        ICancelablePromise<T> ContinueWith<T>(
-            Func<ICancelablePromise<T>> onComplete,
-            Func<Exception, ICancelablePromise<T>> onThrow);
-        
-        ICancelablePromise<T> ContinueWith<T>(
-            Func<ICancelablePromise<T>> onComplete,
-            Func<ICancelablePromise<T>> onCancel,
             Func<Exception, ICancelablePromise<T>> onThrow);
 
         new ICancelablePromise<T> Transform<T>(Func<T> transformResult);
@@ -116,16 +99,8 @@ namespace Promises
 
         ICancelablePromise ContinueWith(
             Func<T, ICancelablePromise> onComplete,
-            Func<ICancelablePromise> onCancel);
-
-        ICancelablePromise ContinueWith(
-            Func<T, ICancelablePromise> onComplete,
             Func<Exception, ICancelablePromise> onThrow);
-
-        ICancelablePromise ContinueWith(
-            Func<T, ICancelablePromise> onComplete,
-            Func<ICancelablePromise> onCancel,
-            Func<Exception, ICancelablePromise> onThrow);
+        
 
         // ICancelablePromise<U> Continues
         ICancelablePromise<U> ContinueWith<U>(
@@ -133,15 +108,6 @@ namespace Promises
 
         ICancelablePromise<U> ContinueWith<U>(
             Func<T, ICancelablePromise<U>> onComplete,
-            Func<ICancelablePromise<U>> onCancel);
-
-        ICancelablePromise<U> ContinueWith<U>(
-            Func<T, ICancelablePromise<U>> onComplete,
-            Func<Exception, ICancelablePromise<U>> onThrow);
-        
-        ICancelablePromise<U> ContinueWith<U>(
-            Func<T, ICancelablePromise<U>> onComplete,
-            Func<ICancelablePromise<U>> onCancel,
             Func<Exception, ICancelablePromise<U>> onThrow);
 
         new ICancelablePromise<U> Transform<U>(Func<T, U> transformResult);

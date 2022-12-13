@@ -41,12 +41,22 @@ namespace Promises
             _cancellationTokenSource.Token.Register(OnCancellation);
             cancellationToken.Register(OnCancellation);
         }
-        
+
         public void Cancel()
         {
             if (!IsPending)
             {
                 throw new InvalidOperationException($"Cannot cancel a non-pending promise.");
+            }
+            
+            CancelIfPending();
+        }
+        
+        public void CancelIfPending()
+        {
+            if (!IsPending)
+            {
+                return;
             }
 
             try
@@ -245,7 +255,6 @@ namespace Promises
         
         public ICancelablePromise ContinueWith(
             Func<ICancelablePromise> onComplete,
-            Func<ICancelablePromise> onCancel,
             Func<Exception, ICancelablePromise> onThrow)
         {
             if (onComplete == null)
@@ -261,57 +270,43 @@ namespace Promises
             {
                 if (onThrow != null)
                 {
-                    onThrow(e)
+                    var thrownPromise = onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
+                        .Canceled(() => newPromise.CancelIfPending())
                         .Then(() => newPromise.Complete());
+
+                    // If this promise or the returned promise get canceled,
+                    // chain that to the downstream promise
+                    newPromise.Canceled(() => thrownPromise.CancelIfPending());
                 }
                 else
                 {
                     newPromise.Throw(e);
                 }
             });
-            
-            this.Canceled(() =>
-            {
-                if (onCancel != null)
-                {
-                    onCancel()
-                        .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
-                        .Then(() => newPromise.Complete());
-                }
-            });
 
             this.Then(() =>
             {
-                onComplete()
+                var thenPromise = onComplete()
                     .Catch(e => newPromise.Throw(e))
-                    .Canceled(() => newPromise.Cancel())
+                    .Canceled(() => newPromise.CancelIfPending())
                     .Then(() => newPromise.Complete());
+                
+                // If this promise or the returned promise get canceled,
+                // chain that to the downstream promise
+                newPromise.Canceled(() => thenPromise.CancelIfPending());
             });
-
+            
             return newPromise;        
         }
         
         public ICancelablePromise ContinueWith(Func<ICancelablePromise> onComplete)
         {
-            return ContinueWith(onComplete, null, null);
+            return ContinueWith(onComplete, null);
         }
-
-        public ICancelablePromise ContinueWith(Func<ICancelablePromise> onComplete, Func<ICancelablePromise> onCancel)
-        {
-            return ContinueWith(onComplete, onCancel, null);
-        }
-
-        public ICancelablePromise ContinueWith(Func<ICancelablePromise> onComplete, Func<Exception, ICancelablePromise> onThrow)
-        {
-            return ContinueWith(onComplete, null, onThrow);
-        }
-
+        
         public ICancelablePromise<T> ContinueWith<T>(
             Func<ICancelablePromise<T>> onComplete, 
-            Func<ICancelablePromise<T>> onCancel, 
             Func<Exception, ICancelablePromise<T>> onThrow)
         {
             if (onComplete == null)
@@ -322,39 +317,36 @@ namespace Promises
             // Create a new promise with our own cancellation source
             // so that canceling that promise cancels us (and vice versa)
             CancelablePromise<T> newPromise = new CancelablePromise<T>(_cancellationTokenSource);
-
+            
             this.Catch(e =>
             {
                 if (onThrow != null)
                 {
-                    onThrow(e)
+                    var thrownPromise = onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
+                        .Canceled(() => newPromise.CancelIfPending())
                         .Then(result => newPromise.Complete(result));
+                    
+                    // If this promise or the returned promise get canceled,
+                    // chain that to the downstream promise
+                    newPromise.Canceled(() => thrownPromise.CancelIfPending());
                 }
                 else
                 {
                     newPromise.Throw(e);
                 }
             });
-            
-            this.Canceled(() =>
-            {
-                if (onCancel != null)
-                {
-                    onCancel()
-                        .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
-                        .Then(result => newPromise.Complete(result));
-                }
-            });
 
             this.Then(() =>
             {
-                onComplete()
+                var thenPromise = onComplete()
                     .Catch(e => newPromise.Throw(e))
-                    .Canceled(() => newPromise.Cancel())
+                    .Canceled(() => newPromise.CancelIfPending())
                     .Then(result => newPromise.Complete(result));
+                
+                // If this promise or the returned promise get canceled,
+                // chain that to the downstream promise
+                newPromise.Canceled(() => thenPromise.CancelIfPending());
             });
 
             return newPromise;   
@@ -362,19 +354,9 @@ namespace Promises
         
         public ICancelablePromise<T> ContinueWith<T>(Func<ICancelablePromise<T>> onComplete)
         {
-            return ContinueWith(onComplete, null, null);
+            return ContinueWith(onComplete, null);
         }
-
-        public ICancelablePromise<T> ContinueWith<T>(Func<ICancelablePromise<T>> onComplete, Func<ICancelablePromise<T>> onCancel)
-        {
-            return ContinueWith(onComplete, onCancel, null);
-        }
-
-        public ICancelablePromise<T> ContinueWith<T>(Func<ICancelablePromise<T>> onComplete, Func<Exception, ICancelablePromise<T>> onThrow)
-        {
-            return ContinueWith(onComplete, null, onThrow);
-        }
-
+        
         public new ICancelablePromise<T> Transform<T>(Func<T> transformResult)
         {
             // Pass our token source to the new promise so that cancelling either promise cancels the other
@@ -474,12 +456,22 @@ namespace Promises
             _cancellationTokenSource.Token.Register(OnCancellation);
             cancellationToken.Register(OnCancellation);
         }
-        
+
         public void Cancel()
         {
             if (!IsPending)
             {
                 throw new InvalidOperationException($"Cannot cancel a non-pending promise.");
+            }
+            
+            CancelIfPending();
+        }
+        
+        public void CancelIfPending()
+        {
+            if (!IsPending)
+            {
+                return;
             }
 
             try
@@ -815,7 +807,6 @@ namespace Promises
         
         public ICancelablePromise ContinueWith(
             Func<ICancelablePromise> onComplete, 
-            Func<ICancelablePromise> onCancel, 
             Func<Exception, ICancelablePromise> onThrow)
         {
             if (onComplete == null)
@@ -831,34 +822,31 @@ namespace Promises
             {
                 if (onThrow != null)
                 {
-                    onThrow(e)
+                    var thrownPromise = onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
+                        .Canceled(() => newPromise.CancelIfPending())
                         .Then(() => newPromise.Complete());
+                    
+                    // If this promise or the returned promise get canceled,
+                    // chain that to the downstream promise
+                    newPromise.Canceled(() => thrownPromise.CancelIfPending());
                 }
                 else
                 {
                     newPromise.Throw(e);
                 }
             });
-            
-            this.Canceled(() =>
-            {
-                if (onCancel != null)
-                {
-                    onCancel()
-                        .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
-                        .Then(() => newPromise.Complete());
-                }
-            });
 
             this.Then(() =>
             {
-                onComplete()
+                var thenPromise = onComplete()
                     .Catch(e => newPromise.Throw(e))
-                    .Canceled(() => newPromise.Cancel())
+                    .Canceled(() => newPromise.CancelIfPending())
                     .Then(() => newPromise.Complete());
+                
+                // If this promise or the returned promise get canceled,
+                // chain that to the downstream promise
+                newPromise.Canceled(() => thenPromise.CancelIfPending());
             });
 
             return newPromise;
@@ -866,108 +854,11 @@ namespace Promises
          
         public ICancelablePromise ContinueWith(Func<ICancelablePromise> onComplete)
         {
-            return ContinueWith(onComplete, null, null);
-        }
-
-        public ICancelablePromise ContinueWith(Func<ICancelablePromise> onComplete, Func<ICancelablePromise> onCancel)
-        {
-            return ContinueWith(onComplete, onCancel, null);
-        }
-
-        public ICancelablePromise ContinueWith(Func<ICancelablePromise> onComplete, Func<Exception, ICancelablePromise> onThrow)
-        {
-            return ContinueWith(onComplete, null, onThrow);
-        }
-        
-        public ICancelablePromise<U> ContinueWith<U>(Func<ICancelablePromise<U>> onComplete)
-        {
-         throw new NotImplementedException();
-        }
-
-        public ICancelablePromise<U> ContinueWith<U>(Func<ICancelablePromise<U>> onComplete, Func<ICancelablePromise<U>> onCancel)
-        {
-         throw new NotImplementedException();
-        }
-
-        public ICancelablePromise<U> ContinueWith<U>(Func<ICancelablePromise<U>> onComplete, Func<Exception, ICancelablePromise<U>> onThrow)
-        {
-         throw new NotImplementedException();
-        }
-
-        public ICancelablePromise<U> ContinueWith<U>(Func<ICancelablePromise<U>> onComplete, Func<ICancelablePromise<U>> onCancel, Func<Exception, ICancelablePromise<U>> onThrow)
-        {
-         throw new NotImplementedException();
-        }
-
-        public ICancelablePromise ContinueWith(
-            Func<T, ICancelablePromise> onComplete, 
-            Func<ICancelablePromise> onCancel, 
-            Func<Exception, ICancelablePromise> onThrow)
-        {
-            if (onComplete == null)
-            {
-                throw new ArgumentNullException(nameof(onComplete));
-            }
-            
-            // Create a new promise with our own cancellation source
-            // so that canceling that promise cancels us (and vice versa)
-            CancelablePromise newPromise = new CancelablePromise(_cancellationTokenSource);
-
-            this.Catch(e =>
-            {
-                if (onThrow != null)
-                {
-                    onThrow(e)
-                        .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
-                        .Then(() => newPromise.Complete());
-                }
-                else
-                {
-                    newPromise.Throw(e);
-                }
-            });
-            
-            this.Canceled(() =>
-            {
-                if (onCancel != null)
-                {
-                    onCancel()
-                        .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
-                        .Then(() => newPromise.Complete());
-                }
-            });
-
-            this.Then(result =>
-            {
-                onComplete(result)
-                    .Catch(e => newPromise.Throw(e))
-                    .Canceled(() => newPromise.Cancel())
-                    .Then(() => newPromise.Complete());
-            });
-
-            return newPromise;
-        }
-        
-        public ICancelablePromise ContinueWith(Func<T, ICancelablePromise> onComplete)
-        {
-            return ContinueWith(onComplete, null, null);
-        }
-
-        public ICancelablePromise ContinueWith(Func<T, ICancelablePromise> onComplete, Func<ICancelablePromise> onCancel)
-        {
-            return ContinueWith(onComplete, onCancel, null);
-        }
-
-        public ICancelablePromise ContinueWith(Func<T, ICancelablePromise> onComplete, Func<Exception, ICancelablePromise> onThrow)
-        {
-            return ContinueWith(onComplete, null, onThrow);
+            return ContinueWith(onComplete, null);
         }
 
         public ICancelablePromise<U> ContinueWith<U>(
-            Func<T, ICancelablePromise<U>> onComplete, 
-            Func<ICancelablePromise<U>> onCancel, 
+            Func<ICancelablePromise<U>> onComplete, 
             Func<Exception, ICancelablePromise<U>> onThrow)
         {
             if (onComplete == null)
@@ -983,34 +874,134 @@ namespace Promises
             {
                 if (onThrow != null)
                 {
-                    onThrow(e)
+                    var thrownPromise = onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
+                        .Canceled(() => newPromise.CancelIfPending())
                         .Then(result => newPromise.Complete(result));
+                    
+                    // If this promise or the returned promise get canceled,
+                    // chain that to the downstream promise
+                    newPromise.Canceled(() => thrownPromise.CancelIfPending());
                 }
                 else
                 {
                     newPromise.Throw(e);
                 }
             });
-            
-            this.Canceled(() =>
+
+            this.Then(() =>
             {
-                if (onCancel != null)
+                var thenPromise = onComplete()
+                    .Catch(e => newPromise.Throw(e))
+                    .Canceled(() => newPromise.CancelIfPending())
+                    .Then(result => newPromise.Complete(result));
+                
+                // If this promise or the returned promise get canceled,
+                // chain that to the downstream promise
+                newPromise.Canceled(() => thenPromise.CancelIfPending());
+            });
+
+            return newPromise;
+        }
+        public ICancelablePromise<U> ContinueWith<U>(Func<ICancelablePromise<U>> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
+
+        public ICancelablePromise ContinueWith(
+            Func<T, ICancelablePromise> onComplete, 
+            Func<Exception, ICancelablePromise> onThrow)
+        {
+            if (onComplete == null)
+            {
+                throw new ArgumentNullException(nameof(onComplete));
+            }
+            
+            // Create a new promise with our own cancellation source
+            // so that canceling that promise cancels us (and vice versa)
+            CancelablePromise newPromise = new CancelablePromise(_cancellationTokenSource);
+
+            this.Catch(e =>
+            {
+                if (onThrow != null)
                 {
-                    onCancel()
+                    var thrownPromise = onThrow(e)
                         .Catch(e2 => newPromise.Throw(e2))
-                        .Canceled(() => newPromise.Cancel())
-                        .Then(result => newPromise.Complete(result));
+                        .Canceled(() => newPromise.CancelIfPending())
+                        .Then(() => newPromise.Complete());
+                    
+                    // If this promise or the returned promise get canceled,
+                    // chain that to the downstream promise
+                    newPromise.Canceled(() => thrownPromise.CancelIfPending());
+                }
+                else
+                {
+                    newPromise.Throw(e);
                 }
             });
 
             this.Then(result =>
             {
-                onComplete(result)
+                var thenPromise = onComplete(result)
                     .Catch(e => newPromise.Throw(e))
-                    .Canceled(() => newPromise.Cancel())
+                    .Canceled(() => newPromise.CancelIfPending())
+                    .Then(() => newPromise.Complete());
+                
+                // If this promise or the returned promise get canceled,
+                // chain that to the downstream promise
+                newPromise.Canceled(() => thenPromise.CancelIfPending());
+            });
+
+            return newPromise;
+        }
+        
+        public ICancelablePromise ContinueWith(Func<T, ICancelablePromise> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
+
+        public ICancelablePromise<U> ContinueWith<U>(
+            Func<T, ICancelablePromise<U>> onComplete, 
+            Func<Exception, ICancelablePromise<U>> onThrow)
+        {
+            if (onComplete == null)
+            {
+                throw new ArgumentNullException(nameof(onComplete));
+            }
+            
+            // Create a new promise with our own cancellation source
+            // so that canceling that promise cancels us (and vice versa)
+            CancelablePromise<U> newPromise = new CancelablePromise<U>(_cancellationTokenSource);
+
+            this.Catch(e =>
+            {
+                if (onThrow != null)
+                {
+                    var thrownPromise = onThrow(e)
+                        .Catch(e2 => newPromise.Throw(e2))
+                        .Canceled(() => newPromise.CancelIfPending())
+                        .Then(result => newPromise.Complete(result));
+                    
+                    // If this promise or the returned promise get canceled,
+                    // chain that to the downstream promise
+                    newPromise.Canceled(() => thrownPromise.CancelIfPending());
+                }
+                else
+                {
+                    newPromise.Throw(e);
+                }
+            });
+
+            this.Then(result =>
+            {
+                var thenPromise = onComplete(result)
+                    .Catch(e => newPromise.Throw(e))
+                    .Canceled(() => newPromise.CancelIfPending())
                     .Then(r2 => newPromise.Complete(r2));
+                
+                // If this promise or the returned promise get canceled,
+                // chain that to the downstream promise
+                newPromise.Canceled(() => thenPromise.CancelIfPending());
             });
 
             return newPromise;
@@ -1018,17 +1009,7 @@ namespace Promises
         
         public ICancelablePromise<U> ContinueWith<U>(Func<T, ICancelablePromise<U>> onComplete)
         {
-            return ContinueWith(onComplete, null, null);
-        }
-
-        public ICancelablePromise<U> ContinueWith<U>(Func<T, ICancelablePromise<U>> onComplete, Func<ICancelablePromise<U>> onCancel)
-        {
-            return ContinueWith(onComplete, onCancel, null);
-        }
-
-        public ICancelablePromise<U> ContinueWith<U>(Func<T, ICancelablePromise<U>> onComplete, Func<Exception, ICancelablePromise<U>> onThrow)
-        {
-            return ContinueWith(onComplete, null, onThrow);
+            return ContinueWith(onComplete, null);
         }
 
         public new ICancelablePromise<U> Transform<U>(Func<U> transformResult)
