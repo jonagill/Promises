@@ -292,10 +292,15 @@ namespace Promises
         #endregion
 
         #region Transformation Methods
+        
+        public IPromise ContinueWith(Func<IPromise> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
 
         public IPromise ContinueWith(
             Func<IPromise> onComplete,
-            Func<Exception, IPromise> onThrow = null)
+            Func<Exception, IPromise> onThrow)
         {
             if (onComplete == null)
             {
@@ -328,9 +333,14 @@ namespace Promises
             return newPromise;
         }
 
+        public IPromise<T> ContinueWith<T>(Func<IPromise<T>> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
+
         public IPromise<T> ContinueWith<T>(
             Func<IPromise<T>> onComplete,
-            Func<Exception, IPromise<T>> onThrow = null)
+            Func<Exception, IPromise<T>> onThrow)
         {
             if (onComplete == null)
             {
@@ -633,9 +643,14 @@ namespace Promises
         
         #region Transformation Functions
         
+        public IPromise ContinueWith(Func<IPromise> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
+        
         public IPromise ContinueWith(
             Func<IPromise> onComplete,
-            Func<Exception, IPromise> onThrow = null)
+            Func<Exception, IPromise> onThrow)
         {
             if (onComplete == null)
             {
@@ -668,9 +683,15 @@ namespace Promises
             return newPromise;
         }
 
+        public IPromise ContinueWith(Func<T, IPromise> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
+
+
         public IPromise ContinueWith(
             Func<T, IPromise> onComplete,
-            Func<Exception, IPromise> onThrow = null)
+            Func<Exception, IPromise> onThrow)
         {
             if (onComplete == null)
             {
@@ -702,10 +723,16 @@ namespace Promises
 
             return newPromise;
         }
+        
+        
+        public IPromise<U> ContinueWith<U>(Func<IPromise<U>> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
 
         public IPromise<U> ContinueWith<U>(
             Func<IPromise<U>> onComplete, 
-            Func<Exception, IPromise<U>> onThrow = null)
+            Func<Exception, IPromise<U>> onThrow)
         {
             if (onComplete == null)
             {
@@ -737,10 +764,15 @@ namespace Promises
 
             return newPromise;
         }
-        
+
+        public IPromise<U> ContinueWith<U>(Func<T, IPromise<U>> onComplete)
+        {
+            return ContinueWith(onComplete, null);
+        }
+
         public IPromise<U> ContinueWith<U>(
             Func<T, IPromise<U>> onComplete,
-            Func<Exception, IPromise<U>> onThrow = null)
+            Func<Exception, IPromise<U>> onThrow)
         {
             if (onComplete == null)
             {

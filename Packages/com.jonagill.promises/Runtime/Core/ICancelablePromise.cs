@@ -1,29 +1,7 @@
 ﻿using System;
-using System.Threading;
 
 namespace Promises
 {
-    public enum CancellationChainingType
-    {
-        /// <summary>
-        /// Chains two CancelablePromises using the same CancellationTokenSource,
-        /// so that cancelling one cancels both the promise it is chaining from
-        /// and any promises that chain from it.
-        /// </summary>
-        CancelAll,
-        /// <summary>
-        /// Chains two CancelablePromises using the same CancellationToken,
-        /// so that canceling the original promise cancels the promises that
-        /// chain from it.
-        /// </summary>
-        CancelChildren,
-        /// <summary>
-        /// Chains two CancelablePromises with completely unrelated CancellationTokens,
-        /// so that canceling either promise does not cancel the other.
-        /// </summary>
-        DontChain,
-    }
-    
     public interface IReadOnlyCancelablePromise : IPromise
     {
         bool IsCanceled { get; }
@@ -31,18 +9,27 @@ namespace Promises
         new IReadOnlyCancelablePromise Then(Action onComplete);
         new IReadOnlyCancelablePromise Catch(Action<Exception> onThrow);
         new IReadOnlyCancelablePromise Finally(Action onFinish);
-        
-        IReadOnlyCancelablePromise ContinueWith(
-            Func<ICancelablePromise> onComplete, 
-            Func<ICancelablePromise> onCancel = null,
-            Func<Exception, ICancelablePromise> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        IReadOnlyCancelablePromise<T> ContinueWith<T>(
-            Func<ICancelablePromise<T>> onComplete,
-            Func<ICancelablePromise<T>> onCancel = null,
-            Func<Exception, ICancelablePromise<T>> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        
+
+        // Additional IPromise Continues
+        IPromise ContinueWith(
+            Func<IPromise> onComplete,
+            Func<IPromise> onCancel);
+
+        IPromise ContinueWith(
+            Func<IPromise> onComplete,
+            Func<IPromise> onCancel,
+            Func<Exception, IPromise> onThrow);
+
+        // Additional IPromise<T> Continues
+        IPromise<T> ContinueWith<T>(
+            Func<IPromise<T>> onComplete, 
+            Func<IPromise<T>> onCancel);
+
+        IPromise<T> ContinueWith<T>(
+            Func<IPromise<T>> onComplete, 
+            Func<IPromise<T>> onCancel,
+            Func<Exception, IPromise<T>> onThrow);
+
         new IReadOnlyCancelablePromise<T> Transform<T>(Func<T> transformResult);
         new IReadOnlyCancelablePromise TransformException(Func<Exception, Exception> transformException);
     }
@@ -56,17 +43,40 @@ namespace Promises
         new ICancelablePromise Catch(Action<Exception> onThrow);
         new ICancelablePromise Finally(Action onFinish);
         
-        new ICancelablePromise ContinueWith(
-            Func<ICancelablePromise> onComplete, 
-            Func<ICancelablePromise> onCancel = null,
-            Func<Exception, ICancelablePromise> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        new ICancelablePromise<T> ContinueWith<T>(
-            Func<ICancelablePromise<T>> onComplete,
-            Func<ICancelablePromise<T>> onCancel = null,
-            Func<Exception, ICancelablePromise<T>> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+        // ICancelablePromise Continues
+        ICancelablePromise ContinueWith(
+            Func<ICancelablePromise> onComplete);
         
+        ICancelablePromise ContinueWith(
+            Func<ICancelablePromise> onComplete,
+            Func<ICancelablePromise> onCancel);
+        
+        ICancelablePromise ContinueWith(
+            Func<ICancelablePromise> onComplete,
+            Func<Exception, ICancelablePromise> onThrow);
+        
+        ICancelablePromise ContinueWith(
+            Func<ICancelablePromise> onComplete,
+            Func<ICancelablePromise> onCancel,
+            Func<Exception, ICancelablePromise> onThrow);
+
+        // ICancelablePromise<T> Continues
+        ICancelablePromise<T> ContinueWith<T>(
+            Func<ICancelablePromise<T>> onComplete);
+
+        ICancelablePromise<T> ContinueWith<T>(
+            Func<ICancelablePromise<T>> onComplete,
+            Func<ICancelablePromise<T>> onCancel);
+
+        ICancelablePromise<T> ContinueWith<T>(
+            Func<ICancelablePromise<T>> onComplete,
+            Func<Exception, ICancelablePromise<T>> onThrow);
+        
+        ICancelablePromise<T> ContinueWith<T>(
+            Func<ICancelablePromise<T>> onComplete,
+            Func<ICancelablePromise<T>> onCancel,
+            Func<Exception, ICancelablePromise<T>> onThrow);
+
         new ICancelablePromise<T> Transform<T>(Func<T> transformResult);
         new ICancelablePromise TransformException(Func<Exception, Exception> transformException);
     }
@@ -79,16 +89,14 @@ namespace Promises
         new IReadOnlyCancelablePromise<T> Catch(Action<Exception> onThrow);
         new IReadOnlyCancelablePromise<T> Finally(Action onFinish);
         
-        IReadOnlyCancelablePromise<U> ContinueWith<U>(
-            Func<T, ICancelablePromise<U>> onComplete,
-            Func<ICancelablePromise<U>> onCancel,
-            Func<Exception, ICancelablePromise<U>> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        IReadOnlyCancelablePromise ContinueWith(
-            Func<T, ICancelablePromise> onComplete,
-            Func<ICancelablePromise> onCancel,
-            Func<Exception, ICancelablePromise> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+        // Additional IPromise Continues
+        IPromise ContinueWith(Func<T, IPromise> onComplete, Func<IPromise> onCancel);
+        IPromise ContinueWith(Func<T, IPromise> onComplete, Func<IPromise> onCancel, Func<Exception, IPromise> onThrow);
+        
+        // Additional IPromise<U> Continues
+        IPromise<U> ContinueWith<U>(Func<T, IPromise<U>> onComplete, Func<IPromise<U>> onCancel);
+        IPromise<U> ContinueWith<U>(Func<T, IPromise<U>> onComplete, Func<IPromise<U>> onCancel, Func<Exception, IPromise<U>> onThrow);
+
         new IReadOnlyCancelablePromise<U> Transform<U>(Func<T, U> transformResult);
         new IReadOnlyCancelablePromise<T> TransformException(Func<Exception, Exception> transformException);
     }
@@ -102,16 +110,40 @@ namespace Promises
         new ICancelablePromise<T> Catch(Action<Exception> onThrow);
         new ICancelablePromise<T> Finally(Action onFinish);
         
-        new ICancelablePromise<U> ContinueWith<U>(
-            Func<T, ICancelablePromise<U>> onComplete,
-            Func<ICancelablePromise<U>> onCancel,
-            Func<Exception, ICancelablePromise<U>> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
-        new ICancelablePromise ContinueWith(
+        // ICancelablePromise Continues
+        ICancelablePromise ContinueWith(
+            Func<T, ICancelablePromise> onComplete);
+
+        ICancelablePromise ContinueWith(
+            Func<T, ICancelablePromise> onComplete,
+            Func<ICancelablePromise> onCancel);
+
+        ICancelablePromise ContinueWith(
+            Func<T, ICancelablePromise> onComplete,
+            Func<Exception, ICancelablePromise> onThrow);
+
+        ICancelablePromise ContinueWith(
             Func<T, ICancelablePromise> onComplete,
             Func<ICancelablePromise> onCancel,
-            Func<Exception, ICancelablePromise> onThrow = null,
-            CancellationChainingType chaining = CancellationChainingType.CancelAll);
+            Func<Exception, ICancelablePromise> onThrow);
+
+        // ICancelablePromise<U> Continues
+        ICancelablePromise<U> ContinueWith<U>(
+            Func<T, ICancelablePromise<U>> onComplete);
+
+        ICancelablePromise<U> ContinueWith<U>(
+            Func<T, ICancelablePromise<U>> onComplete,
+            Func<ICancelablePromise<U>> onCancel);
+
+        ICancelablePromise<U> ContinueWith<U>(
+            Func<T, ICancelablePromise<U>> onComplete,
+            Func<Exception, ICancelablePromise<U>> onThrow);
+        
+        ICancelablePromise<U> ContinueWith<U>(
+            Func<T, ICancelablePromise<U>> onComplete,
+            Func<ICancelablePromise<U>> onCancel,
+            Func<Exception, ICancelablePromise<U>> onThrow);
+
         new ICancelablePromise<U> Transform<U>(Func<T, U> transformResult);
         new ICancelablePromise<T> TransformException(Func<Exception, Exception> transformException);
     }

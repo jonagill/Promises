@@ -306,7 +306,558 @@ namespace Promises
             Assert.IsNotNull(caughtException);
             Assert.AreEqual(internalException, caughtException.InnerException);
         }
+        
+        #endregion
+        
+        #region Transformation Functions
+        
+        [Test]
+        public void ContinueWithChainsPromisesOnComplete()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise continuePromise = null;
+            
+            var bothPromisesCompleted = false;
 
+            var fp = (ICancelablePromise)firstPromise;
+
+            fp
+                .ContinueWith(() =>
+                {
+                    continuePromise = new Promise();
+                    return continuePromise;
+                })
+                .Then(() =>
+                {
+                    bothPromisesCompleted = true;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsFalse(bothPromisesCompleted);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsFalse(bothPromisesCompleted);
+            
+            continuePromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsTrue(bothPromisesCompleted);
+        }
+        
+        [Test]
+        public void ContinueWithSkipsOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new Promise();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(new Exception());
+            
+            // Second promise is never generated because the first promise
+            // threw an exception
+            Assert.IsNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void ContinueWithChainsPromisesOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new Promise();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            continuePromise.Throw(new Exception());
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void ContinueWithCanTransformExceptionOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise onCompletePromise = null;
+            Promise onThrowPromise = null;
+            Exception exception = null;
+
+            var firstException = new Exception("First");
+            var onThrowException = new Exception("Second");
+
+            firstPromise
+                .ContinueWith(onComplete:() =>
+                {
+                    onCompletePromise = new Promise();
+                    return onCompletePromise;
+                }, onThrow: e =>
+                {
+                    onThrowPromise = new Promise();
+                    return onThrowPromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(firstException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            onThrowPromise.Throw(onThrowException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.AreEqual(onThrowException, exception);
+        }
+        
+        [Test]
+        public void TypedContinueWithChainsPromisesOnComplete()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise<int> continuePromise = null;
+            var result = -1;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new Promise<int>();
+                    return continuePromise;
+                })
+                .Then(r =>
+                {
+                    result = r;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.AreEqual(-1, result);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.AreEqual(-1, result);
+            
+            continuePromise.Complete(99);
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.AreEqual(99, result);
+        }
+        
+        [Test]
+        public void TypedContinueWithSkipsOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise<int> continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new Promise<int>();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(new Exception());
+            
+            // Second promise is never generated because the first promise
+            // threw an exception
+            Assert.IsNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void TypedContinueWithChainsPromisesOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            Promise<int> continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new Promise<int>();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            continuePromise.Throw(new Exception());
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void TypedContinueWithCanTransformExceptionOnThrow()
+        {
+            var firstPromise = new Promise();
+            Promise<int> onCompletePromise = null;
+            Promise<int> onThrowPromise = null;
+            Exception exception = null;
+
+            var firstException = new Exception("First");
+            var onThrowException = new Exception("Second");
+
+            firstPromise
+                .ContinueWith(onComplete:() =>
+                {
+                    onCompletePromise = new Promise<int>();
+                    return onCompletePromise;
+                }, onThrow: e =>
+                {
+                    onThrowPromise = new Promise<int>();
+                    return onThrowPromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(firstException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            onThrowPromise.Throw(onThrowException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.AreEqual(onThrowException, exception);
+        }
+        
+        [Test]
+        public void CancelableContinueWithChainsPromisesOnComplete()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise continuePromise = null;
+            
+            var bothPromisesCompleted = false;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new CancelablePromise();
+                    return continuePromise;
+                })
+                .Then(() =>
+                {
+                    bothPromisesCompleted = true;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsFalse(bothPromisesCompleted);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsFalse(bothPromisesCompleted);
+            
+            continuePromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsTrue(bothPromisesCompleted);
+        }
+        
+        [Test]
+        public void CancelableContinueWithSkipsOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new CancelablePromise();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(new Exception());
+            
+            // Second promise is never generated because the first promise
+            // threw an exception
+            Assert.IsNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void CancelableContinueWithChainsPromisesOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new CancelablePromise();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            continuePromise.Throw(new Exception());
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void CancelableContinueWithCanTransformExceptionOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise onCompletePromise = null;
+            CancelablePromise onThrowPromise = null;
+            Exception exception = null;
+
+            var firstException = new Exception("First");
+            var onThrowException = new Exception("Second");
+
+            firstPromise
+                .ContinueWith(onComplete:() =>
+                {
+                    onCompletePromise = new CancelablePromise();
+                    return onCompletePromise;
+                }, onThrow: e =>
+                {
+                    onThrowPromise = new CancelablePromise();
+                    return onThrowPromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(firstException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            onThrowPromise.Throw(onThrowException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.AreEqual(onThrowException, exception);
+        }
+        
+        [Test]
+        public void CancelableTypedContinueWithChainsPromisesOnComplete()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> continuePromise = null;
+            var result = -1;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new CancelablePromise<int>();
+                    return continuePromise;
+                })
+                .Then(r =>
+                {
+                    result = r;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.AreEqual(-1, result);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.AreEqual(-1, result);
+            
+            continuePromise.Complete(99);
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.AreEqual(99, result);
+        }
+        
+        [Test]
+        public void CancelableTypedContinueWithSkipsOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new CancelablePromise<int>();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(new Exception());
+            
+            // Second promise is never generated because the first promise
+            // threw an exception
+            Assert.IsNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void CancelableTypedContinueWithChainsPromisesOnThrow()
+        {
+            var firstPromise = new CancelablePromise();
+            CancelablePromise<int> continuePromise = null;
+            Exception exception = null;
+
+            firstPromise
+                .ContinueWith(() =>
+                {
+                    continuePromise = new CancelablePromise<int>();
+                    return continuePromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Complete();
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNull(exception);
+            
+            continuePromise.Throw(new Exception());
+            
+            Assert.IsNotNull(continuePromise);
+            Assert.IsNotNull(exception);
+        }
+        
+        [Test]
+        public void CancelableTypedContinueWithCanTransformExceptionOnThrow()
+        {
+            var firstPromise = new Promise();
+            Promise<int> onCompletePromise = null;
+            Promise<int> onThrowPromise = null;
+            Exception exception = null;
+
+            var firstException = new Exception("First");
+            var onThrowException = new Exception("Second");
+
+            firstPromise
+                .ContinueWith(onComplete:() =>
+                {
+                    onCompletePromise = new Promise<int>();
+                    return onCompletePromise;
+                }, onThrow: e =>
+                {
+                    onThrowPromise = new Promise<int>();
+                    return onThrowPromise;
+                })
+                .Catch(e =>
+                {
+                    exception = e;
+                });
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            firstPromise.Throw(firstException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.IsNull(exception);
+            
+            onThrowPromise.Throw(onThrowException);
+            
+            Assert.IsNull(onCompletePromise);
+            Assert.IsNotNull(onThrowPromise);
+            Assert.AreEqual(onThrowException, exception);
+        }
         
         #endregion
     }
