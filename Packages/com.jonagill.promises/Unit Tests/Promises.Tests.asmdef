@@ -1,9 +1,7 @@
 {
     "name": "Promises.Tests",
     "references": [
-        "GUID:2a1456357e964aa4a9d946a896206537",
-        "GUID:343deaaf83e0cee4ca978e7df0b80d21",
-        "GUID:2bafac87e7f4b9b418d9448d219b01ab"
+        "GUID:2a1456357e964aa4a9d946a896206537"
     ],
     "includePlatforms": [
         "Editor"
