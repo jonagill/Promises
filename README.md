@@ -146,7 +146,7 @@ Some bonus helper methods are provided to make writing Promise-based code easier
 * `Promise.Combine()` returns a Promise that completes if all of the promises provided as arguments complete (much like `Promise.All()`), but it returns a tuple containing the combined results of all of the sub-promises.
 
 # Async and tasks
-In many ways, Promises are less robut than C#'s [built-in Task-based asynchronous functions](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/). However, it can be harder to learn to use Tasks correctly, and Unity's support for async methods was historically fairly unreliable (although it has become much better supported in the last couple of years).
+In many ways, Promises are less robust than C#'s [built-in Task-based asynchronous functions](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/). However, it can be harder to learn to use Tasks correctly, and Unity's support for async methods was historically fairly unreliable (although it has become much better supported in the last couple of years).
 
 If you do want to use Promises and Tasks together, this library provides simple extension methods for converting Promises to Tasks (`promise.AsTask()`) and vice versa (`task.AsPromise()`).
 
