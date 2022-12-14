@@ -1,6 +1,21 @@
 # Promises
 This library provides a C# implementation of the [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) pattern for use in Unity projects. Promises provide an easy to use and chainable alternative to traditional asynchronous function callbacks.
 
+
+## Installation
+We recommend you install the Promises library via [OpenUPM](https://openupm.com/packages/com.jonagill.promises/). Per OpenUPM's documentation:
+
+1. Open `Edit/Project Settings/Package Manager`
+2. Add a new Scoped Registry (or edit the existing OpenUPM entry) to read:
+    * Name: `package.openupm.com`
+    * URL: `https://package.openupm.com`
+    * Scope(s): `com.jonagill.promises`
+3. Click Save (or Apply)
+4. Open Window/Package Manager
+5. Click the + button
+6. Select Add package by name...
+6. Click Add
+
 # Basic functionality
 Promises provide a simple for returning asynchronous result and error callbacks from your functions.
 
