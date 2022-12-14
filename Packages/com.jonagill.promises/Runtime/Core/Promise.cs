@@ -147,8 +147,8 @@ namespace Promises
             IPromise<X> e,
             IPromise<Y> f) => new CombinePromise<T,U,V,W,X,Y>(a, b, c, d, e, f);
 
-        public static IPromise Combine<T>(ICollection<IPromise<T>> promises) => new CombinePromise<T>(promises);
-        public static IPromise Combine<T>(params IPromise<T>[] promises) => new CombinePromise<T>(promises);
+        public static IPromise<IList<T>> Combine<T>(ICollection<IPromise<T>> promises) => new CombinePromise<T>(promises);
+        public static IPromise<IList<T>> Combine<T>(params IPromise<T>[] promises) => new CombinePromise<T>(promises);
         
         #endregion
 
