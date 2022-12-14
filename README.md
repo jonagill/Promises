@@ -130,6 +130,8 @@ These classes provide a `Cancel()` function that cancels the promise, along with
 
 Internally, CancelablePromises are constructing using the same [CancellationTokenSource](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtokensource?view=net-7.0) class as C#'s Task-based asynchronous programming pattern. If you want to tie multiple CancelablePromises together (so that cancelling one cancels both), you can manually create a `CancellationTokenSource` and pass it to both CancelablePromises' constructors.
 
+If you chain multiple CancelablePromises together with `ContinueWith()`, then cancelling one promise will automatically cancel the rest of the chain.
+
 # Additional helpers
 Some bonus helper methods are provided to make writing Promise-based code easier:
 
