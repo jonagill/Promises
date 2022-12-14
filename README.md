@@ -67,7 +67,7 @@ public IPromise PromptForTextEntry(string message)
 }
 ```
 
-Exteral code can then invoke your function and listen to results like this:
+External code can then invoke your function and listen to results like this:
 
 ```
 PromptForTextEntry("What is your name?")
